@@ -1,0 +1,7 @@
+[run]
+source = linkstore
+omit = **/__init__.py
+branch = True
+
+[report]
+show_missing = True
