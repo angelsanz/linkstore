@@ -1,0 +1,8 @@
+.vagrant/
+
+htmlcov/
+
+*.egg-info
+*.pyc
+
+.coverage

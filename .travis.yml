@@ -1,0 +1,20 @@
+language: python
+python:
+    - "2.7"
+
+install: .scripts/install-for-development.bash
+
+script: .scripts/test.bash
+
+after_success: coveralls
+
+
+deploy:
+    provider: pypi
+    user: angelsanz
+    password:
+        secure: "OaOTRIzwoWZrOLilpNs6vQ0uRQkVGdKI10XJzW7yjS/PMuDYpeW7eIgkGxJr4t9lsqITkkSHadnORpmeAnffJ+JREB/+51PvVV5CLzt+5BnPSANQMdeaC2VplPbSoyOEmrWJYLO14oFE1EyVAknXP5rm+zvU7hoDROgBPMUYl/8199Cs6g7astE7/f4/7L7Na9jL+YXHfnctnB1Y5fVu5Zdl6C5K2QniA5cLvWq1QyyLv+2X+0O54d6wduQyUwluyEwo4AZ2ty7di0ccUy0ZVuTDLnzVr3DBFM4ThMib646fCtzOUWeAWkExKv3pQwxN8Pzruej120P6zEH1EDH71mNqtdxXgppxUZ5YWn8PSClLUUAuvSpT8HpRoq1xCXdzqewazK0/ylN1g1fkqwjOPO56WMaIlFUOkyqjCsnUiLX7qltzvYje9LSw9XrI/qTmu6vpviFaDikbdZWErlQypurgB2X/IoHCEP40NOT+XGiEyNJ/DN++v4S2zSGuyP7f789D+nGN2QwLci/Ba3DgMLAd1DOJsT3utjI8hN1O7dn3hCJAqcbsvczEuD35+i6vCbpS1++lNW1Fqgdy2oLB/TOF9BMOAtoosimI8t8GxuUHmlSAf4gxBxsVAnaZTcDzH3a890G0yxBL9z7iefWNgJquZJt8PDgWfWgZ6evmWvs="
+    distributions: "sdist"
+    on:
+        tags: true
+        repo: angelsanz/linkstore

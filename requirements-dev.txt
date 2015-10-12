@@ -1,0 +1,9 @@
+-e .
+-r requirements.txt
+
+flake8==2.4.1
+
+behave==1.2.5
+mamba==0.8.5
+
+coveralls==1.0
