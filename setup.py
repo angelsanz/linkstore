@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'linkstore',
-    version = '0.0.0',
+    version = '0.0.1',
     description = 'A dead-simple bookmarking CLI application',
     classifiers = [
         'Development Status :: 2 - Pre-Alpha',
@@ -27,5 +27,10 @@ setup(
     zip_safe = False,
     install_requires = [
         requirement.strip() for requirement in open('requirements.txt').readlines()
-    ]
+    ],
+    entry_points = {
+        'console_scripts': [
+            'linkstore = linkstore.cli:linkstore_cli'
+        ]
+    }
 )

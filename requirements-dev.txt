@@ -5,5 +5,7 @@ flake8==2.4.1
 
 behave==1.2.5
 mamba==0.8.5
+expects==0.8.0rc3
+doublex-expects==0.7.0rc1
 
 coveralls==1.0
