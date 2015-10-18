@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'linkstore',
-    version = '0.0.1',
+    version = '0.0.2',
     description = 'A dead-simple bookmarking CLI application',
     classifiers = [
         'Development Status :: 2 - Pre-Alpha',
