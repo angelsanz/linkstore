@@ -1,4 +1,5 @@
 [run]
+include = linkstore/cli.py, linkstore/link_storage.py
 branch = True
 
 [report]
