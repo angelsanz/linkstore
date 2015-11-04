@@ -5,7 +5,7 @@ import sqlite3
 
 class SqliteLinkStorage(object):
     def __init__(self, in_memory=False):
-        self._connection = SqliteConnection.create(in_memory)
+        self._connection = SqliteConnectionFactory.create(in_memory)
         self._set_up_database()
 
     def _set_up_database(self):
@@ -27,7 +27,7 @@ class SqliteLinkStorage(object):
                 .fetchall()
 
 
-class SqliteConnection(object):
+class SqliteConnectionFactory(object):
     @staticmethod
     def create(in_memory):
         if in_memory:
@@ -37,18 +37,8 @@ class SqliteConnection(object):
 
 
 class AutoclosingSqliteConnection(object):
-    DATABASE_FILE_NAME = 'linkstore.sqlite'
-    PATH_TO_DATA_DIRECTORY = path.expanduser('~/.linkstore')
-    PATH_TO_DATABASE = path.join(PATH_TO_DATA_DIRECTORY, DATABASE_FILE_NAME)
-
     def __init__(self):
-        self._ensure_data_directory_exists()
-
-    def _ensure_data_directory_exists(self):
-        if path.exists(AutoclosingSqliteConnection.PATH_TO_DATA_DIRECTORY):
-            return
-
-        os.mkdir(AutoclosingSqliteConnection.PATH_TO_DATA_DIRECTORY)
+        self._application_data_directory = ApplicationDataDirectory()
 
     def __enter__(self):
         self._current_connection = self._create_new_connection()
@@ -57,13 +47,32 @@ class AutoclosingSqliteConnection(object):
         return self._current_connection
 
     def _create_new_connection(self):
-        return sqlite3.connect(AutoclosingSqliteConnection.PATH_TO_DATABASE)
+        return sqlite3.connect(self._application_data_directory.path_to_database_file)
 
     def __exit__(self, type, value, traceback):
         self._current_connection.__exit__(type, value, traceback)
         self._current_connection.close()
 
         return False
+
+
+class ApplicationDataDirectory(object):
+    def __init__(self):
+        self.path_to_data_directory = path.expanduser('~/.linkstore/')
+        name_of_database_file = 'linkstore.sqlite'
+        self._path_to_database_file = path.join(self.path_to_data_directory, name_of_database_file)
+
+    @property
+    def path_to_database_file(self):
+        self._ensure_data_directory_exists()
+
+        return self._path_to_database_file
+
+    def _ensure_data_directory_exists(self):
+        if path.exists(self.path_to_data_directory):
+            return
+
+        os.mkdir(self.path_to_data_directory)
 
 
 class InMemoryLinkStorage(object):

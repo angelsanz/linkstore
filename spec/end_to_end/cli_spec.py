@@ -3,7 +3,7 @@ import shutil
 
 from expects import expect, equal, be_empty, match
 
-from linkstore.link_storage import AutoclosingSqliteConnection
+from linkstore.link_storage import ApplicationDataDirectory
 
 
 def invoke_cli(arguments):
@@ -70,4 +70,4 @@ with description('the command-line interface'):
                 expect(line).not_to(match(tag_filter))
 
     with after.each:
-        shutil.rmtree(AutoclosingSqliteConnection.PATH_TO_DATA_DIRECTORY)
+        shutil.rmtree(ApplicationDataDirectory().path_to_data_directory)
