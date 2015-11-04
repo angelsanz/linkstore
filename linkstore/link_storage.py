@@ -37,23 +37,29 @@ class SqliteConnectionFactory(object):
 
 
 class AutoclosingSqliteConnection(object):
-    def __init__(self):
-        self._application_data_directory = ApplicationDataDirectory()
+    def __init__(self, provider_of_sqlite_connection=None):
+        self._provider_of_sqlite_connection = provider_of_sqlite_connection if provider_of_sqlite_connection is not None  \
+            else ProviderOfConnectionToOnDiskSqliteDatabase()
 
     def __enter__(self):
-        self._current_connection = self._create_new_connection()
+        self._current_connection = self._provider_of_sqlite_connection.get()
         self._current_connection.__enter__()
 
         return self._current_connection
-
-    def _create_new_connection(self):
-        return sqlite3.connect(self._application_data_directory.path_to_database_file)
 
     def __exit__(self, type, value, traceback):
         self._current_connection.__exit__(type, value, traceback)
         self._current_connection.close()
 
         return False
+
+
+class ProviderOfConnectionToOnDiskSqliteDatabase(object):
+    def __init__(self):
+        self._directory = ApplicationDataDirectory()
+
+    def get(self):
+        return sqlite3.connect(self._directory.path_to_database_file)
 
 
 class ApplicationDataDirectory(object):
