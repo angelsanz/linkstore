@@ -1,5 +1,5 @@
 from expects import expect, equal
-from doublex import Spy
+from doublex import Stub, Spy
 from doublex_expects import have_been_called, have_been_called_with
 
 from linkstore.link_storage import InMemoryLinkStorage, SqliteLinkStorage, AutoclosingSqliteConnection
@@ -80,11 +80,11 @@ with description('the SQLite link storage'):
     with description('the autoclosing connection class'):
         with context('when used as a context manager'):
             with it('closes the connection after the with block is executed'):
-                autoclosing_connection = AutoclosingSqliteConnection()
-                connection = Spy()
-                autoclosing_connection._create_new_connection = lambda: connection
+                sqlite_connection = Spy()
+                with Stub() as sqlite_connection_provider_stub:
+                    sqlite_connection_provider_stub.get().returns(sqlite_connection)
 
-                with autoclosing_connection:
-                    expect(connection.close).not_to(have_been_called)
+                with AutoclosingSqliteConnection(sqlite_connection_provider_stub):
+                    expect(sqlite_connection.close).not_to(have_been_called)
 
-                expect(connection.close).to(have_been_called_with().once)
+                expect(sqlite_connection.close).to(have_been_called_with().once)
