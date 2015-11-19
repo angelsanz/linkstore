@@ -10,20 +10,20 @@ class SqliteLinkStorage(object):
 
     def _set_up_database(self):
         with self._connection as connection:
-            connection.execute('create table if not exists links(url, tag)')
+            connection.execute('create table if not exists links(link_id integer primary key, url, tag)')
 
     def get_all(self):
         with self._connection as connection:
-            return connection.execute('select * from links') \
+            return connection.execute('select url, tag from links') \
                 .fetchall()
 
     def save(self, an_url, a_tag):
         with self._connection as connection:
-            connection.execute('insert into links values(?, ?)', (an_url, a_tag))
+            connection.execute('insert into links(url, tag) values(?, ?)', (an_url, a_tag))
 
     def find_by_tag(self, a_tag):
         with self._connection as connection:
-            return connection.execute('select * from links where tag = ?', (a_tag,)) \
+            return connection.execute('select url, tag from links where tag = ?', (a_tag,)) \
                 .fetchall()
 
 
