@@ -5,10 +5,36 @@ import sqlite3
 
 class SqliteLinkStorage(object):
     def __init__(self, in_memory=False):
-        self._connection = SqliteConnectionFactory.create(in_memory)
-        self._set_up_database()
+        connection_to_database = SqliteConnectionFactory.create(in_memory)
 
-    def _set_up_database(self):
+        self.links_table = LinksTable(connection_to_database)
+
+    def get_all(self):
+        return self.links_table.get_all()
+
+    def save(self, an_url, a_tag):
+        self.links_table.save(an_url, a_tag)
+
+    def find_by_tag(self, a_tag):
+        return self.links_table.find_by_tag(a_tag)
+
+
+class SqliteConnectionFactory(object):
+    @staticmethod
+    def create(in_memory):
+        if in_memory:
+            return sqlite3.connect(':memory:')
+
+        return AutoclosingSqliteConnection()
+
+
+class LinksTable(object):
+    def __init__(self, connection_to_database):
+        self._connection = connection_to_database
+
+        self._set_up_table()
+
+    def _set_up_table(self):
         with self._connection as connection:
             connection.execute('create table if not exists links(link_id integer primary key, url, tag)')
 
@@ -25,15 +51,6 @@ class SqliteLinkStorage(object):
         with self._connection as connection:
             return connection.execute('select url, tag from links where tag = ?', (a_tag,)) \
                 .fetchall()
-
-
-class SqliteConnectionFactory(object):
-    @staticmethod
-    def create(in_memory):
-        if in_memory:
-            return sqlite3.connect(':memory:')
-
-        return AutoclosingSqliteConnection()
 
 
 class AutoclosingSqliteConnection(object):
