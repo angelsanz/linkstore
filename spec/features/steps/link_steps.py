@@ -13,7 +13,21 @@ def perform_save(context):
 @then(u'they should be successfully saved')
 def verify_link_was_saved(context):
     all_links = context.link_storage.get_all()
-    expect(all_links).to(contain((context.an_url, context.a_tag)))
+    expect(all_links).to(contain((context.an_url, (context.a_tag,))))
+
+@given(u'the URL "{an_url}" and the tags "{a_tag}", "{another_tag}"')
+def save_url_and_tags(context, an_url, a_tag, another_tag):
+    context.an_url = an_url
+    context.given_tags = (a_tag, another_tag)
+
+@when(u'I request that the link be saved with those tags')
+def perform_save_with_both_tags(context):
+    context.linkstore.save_link(context.an_url, context.given_tags)
+
+@then(u'they it should be successfully saved')
+def verify_link_was_saved_with_both_tags(context):
+    all_links = context.link_storage.get_all()
+    expect(all_links).to(contain((context.an_url, context.given_tags)))
 
 
 @given(u'I have saved a link with tag "{given_tag}"')
@@ -30,5 +44,5 @@ def retrieve_all_links_with_given_tag(context, given_tag):
 @then(u'I should get that link\'s URL')
 def verify_saved_link_is_present(context):
     expect(context.all_links_with_given_tag).to(
-        contain((context.an_url, context.given_tag))
+        contain((context.an_url, (context.given_tag,)))
     )

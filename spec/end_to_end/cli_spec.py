@@ -9,18 +9,21 @@ from linkstore.link_storage import ApplicationDataDirectory
 def invoke_cli(arguments):
     path_to_cli_binary = subprocess.check_output([ 'which', 'linkstore' ]).strip()
 
-    return ExecutionResult(
-        subprocess.check_output(
+    try:
+        output = subprocess.check_output(
             [ 'coverage', 'run', '--append', '--rcfile=.coveragerc_end-to-end' ] +
             [ path_to_cli_binary ] +
             arguments
         )
-    )
+    except subprocess.CalledProcessError as error:
+        return ExecutionResult(error.output, error.returncode)
+
+    return ExecutionResult(output)
 
 class ExecutionResult(object):
-    def __init__(self, output):
+    def __init__(self, output, exit_code=0):
         self.lines_in_output = self._get_lines_from(output)
-        self.exit_code = 0
+        self.exit_code = exit_code
 
     def _get_lines_from(self, output):
         if output == '':
@@ -30,14 +33,34 @@ class ExecutionResult(object):
 
 with description('the command-line interface'):
     with context('when saving links'):
-        with it('does not output anything'):
-            an_url = 'https://www.example.com/'
-            a_tag = 'favourites'
+        with before.each:
+            self.an_url = 'https://www.example.com/'
 
-            execution_result = invoke_cli([ 'save', an_url, a_tag ])
+        with context('without a tag'):
+            with it('fails'):
+                execution_result = invoke_cli([ 'save', self.an_url ])
 
-            expect(execution_result.exit_code).to(equal(0))
-            expect(execution_result.lines_in_output).to(be_empty)
+                expect(execution_result.exit_code).not_to(equal(0))
+
+        with context('with one tag'):
+            with it('does not output anything'):
+                a_tag = 'favourites'
+
+                execution_result = invoke_cli([ 'save', self.an_url, a_tag ])
+
+                expect(execution_result.exit_code).to(equal(0))
+                expect(execution_result.lines_in_output).to(be_empty)
+
+        with context('with more than one tag'):
+            with it('does not output anything'):
+                a_tag = 'favourites'
+                another_tag = 'another_tag'
+
+                execution_result = invoke_cli([ 'save', self.an_url, a_tag, another_tag ])
+
+                expect(execution_result.exit_code).to(equal(0))
+                expect(execution_result.lines_in_output).to(be_empty)
+
 
     with context('when retrieving links by tag'):
         with it('outputs a line per retrieved link'):
@@ -70,4 +93,4 @@ with description('the command-line interface'):
                 expect(line).not_to(match(tag_filter))
 
     with after.each:
-        shutil.rmtree(ApplicationDataDirectory().path_to_data_directory)
+        shutil.rmtree(ApplicationDataDirectory().path)
