@@ -11,9 +11,9 @@ def linkstore_cli():
 
 @linkstore_cli.command()
 @argument('url')
-@argument('tag')
-def save(url, tag):
-    linkstore.save_link(url, tag)
+@argument('tags', nargs=-1, required=True)
+def save(url, tags):
+    linkstore.save_link(url, tags)
 
 
 @linkstore_cli.command()
