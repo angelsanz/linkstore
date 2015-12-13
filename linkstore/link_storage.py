@@ -73,18 +73,18 @@ class SqliteConnectionFactory(object):
         return connection_to_on_disk_database
 
 
-class LinkstoreSqliteTable(object):
+class SqliteTable(object):
     def __init__(self, connection_to_database):
         self._connection = connection_to_database
 
-        self._set_up_table()
+        self._set_up()
 
-    def _set_up_table(self):
+    def _set_up(self):
         with self._connection as connection:
             connection.execute(self.SQL_COMMAND_FOR_TABLE_CREATION)
 
 
-class LinksTable(LinkstoreSqliteTable):
+class LinksTable(SqliteTable):
     SQL_COMMAND_FOR_TABLE_CREATION = '''
         create table if not exists links(
             link_id integer primary key
@@ -127,7 +127,7 @@ class LinksTable(LinkstoreSqliteTable):
             return desired_url
 
 
-class TagsTable(LinkstoreSqliteTable):
+class TagsTable(SqliteTable):
     SQL_COMMAND_FOR_TABLE_CREATION = '''
         create table if not exists tags(
             link_id
@@ -169,7 +169,7 @@ class TagsTable(LinkstoreSqliteTable):
 
 class AutoclosingSqliteConnection(object):
     def __init__(self, provider_of_sqlite_connection=None):
-        self._provider_of_sqlite_connection = provider_of_sqlite_connection if provider_of_sqlite_connection is not None  \
+        self._provider_of_sqlite_connection = provider_of_sqlite_connection if provider_of_sqlite_connection is not None \
             else ProviderOfConnectionToOnDiskSqliteDatabase()
 
     def __enter__(self):
