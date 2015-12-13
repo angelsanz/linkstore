@@ -7,25 +7,25 @@ class SqliteLinkStorage(object):
     def __init__(self, in_memory=False):
         connection_to_database = SqliteConnectionFactory.create(in_memory)
 
-        self.links_table = LinksTable(connection_to_database)
-        self.tags_table = TagsTable(connection_to_database)
+        self._links_table = LinksTable(connection_to_database)
+        self._tags_table = TagsTable(connection_to_database)
 
     def get_all(self):
         all_links = []
-        for link_id, url in self.links_table.get_all():
+        for link_id, url in self._links_table.get_all():
             all_links.append((
                 url,
-                self.tags_table.get_tags_of_link_with_id(link_id)
+                self._tags_table.get_tags_of_link_with_id(link_id)
             ))
 
         return all_links
 
     def save(self, an_url, tag_or_tags):
-        self.links_table.save(an_url)
+        self._links_table.save(an_url)
 
-        id_of_newly_created_link = self.links_table.get_id_of_link_with_url(an_url)
+        id_of_newly_created_link = self._links_table.get_id_of_link_with_url(an_url)
         tags_to_save = self._pack_given_tag_or_tags(tag_or_tags)
-        self.tags_table.save_tags_for_link(id_of_newly_created_link, tags_to_save)
+        self._tags_table.save_tags_for_link(id_of_newly_created_link, tags_to_save)
 
     def _pack_given_tag_or_tags(self, tag_or_tags):
         if isinstance(tag_or_tags, basestring):
@@ -37,10 +37,10 @@ class SqliteLinkStorage(object):
 
     def find_by_tag(self, a_tag):
         matching_links = []
-        for link_id in self.tags_table.get_ids_of_links_with_tag(a_tag):
+        for link_id in self._tags_table.get_ids_of_links_with_tag(a_tag):
             matching_links.append((
-                self.links_table.get_url_of_link_with_id(link_id),
-                self.tags_table.get_tags_of_link_with_id(link_id)
+                self._links_table.get_url_of_link_with_id(link_id),
+                self._tags_table.get_tags_of_link_with_id(link_id)
             ))
 
         return matching_links
