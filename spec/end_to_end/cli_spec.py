@@ -63,7 +63,7 @@ with description('the command-line interface'):
 
 
     with context('when retrieving links by tag'):
-        with it('outputs a line per retrieved link'):
+        with it('outputs a line per retrieved link, containing the URL'):
             tag_filter = 'some_tag'
             links_to_save = [
                 ('some url',        tag_filter),
