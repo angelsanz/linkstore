@@ -2,30 +2,34 @@ import os
 from os import path
 import sqlite3
 
+from .clock import Clock
+
 
 class SqliteLinkStorage(object):
-    def __init__(self, in_memory=False):
-        connection_to_database = SqliteConnectionFactory.create(in_memory)
+    def __init__(self, clock=None, in_memory=False):
+        self._clock = clock if clock is not None else Clock()
 
+        connection_to_database = SqliteConnectionFactory.create(in_memory)
         self._links_table = LinksTable(connection_to_database)
         self._tags_table = TagsTable(connection_to_database)
 
     def get_all(self):
         all_links = []
-        for link_id, url in self._links_table.get_all():
+        for link_id, url, date_saved in self._links_table.get_all():
             all_links.append((
                 url,
+                date_saved,
                 self._tags_table.get_tags_of_link_with_id(link_id)
             ))
 
         return all_links
 
     def save(self, an_url, tag_or_tags):
-        self._links_table.save(an_url)
+        self._links_table.save(an_url, self._clock.date_of_today())
 
         id_of_newly_created_link = self._links_table.get_id_of_link_with_url(an_url)
         tags_to_save = self._pack_given_tag_or_tags(tag_or_tags)
-        self._tags_table.save_tags_for_link(id_of_newly_created_link, tags_to_save)
+        self._tags_table.save_tags_for_link_with_id(id_of_newly_created_link, tags_to_save)
 
     def _pack_given_tag_or_tags(self, tag_or_tags):
         if isinstance(tag_or_tags, basestring):
@@ -38,10 +42,10 @@ class SqliteLinkStorage(object):
     def find_by_tag(self, a_tag):
         matching_links = []
         for link_id in self._tags_table.get_ids_of_links_with_tag(a_tag):
-            matching_links.append((
-                self._links_table.get_url_of_link_with_id(link_id),
-                self._tags_table.get_tags_of_link_with_id(link_id)
-            ))
+            matching_links.append(
+                self._links_table.get_url_and_date_of_link_with_id(link_id) +
+                (self._tags_table.get_tags_of_link_with_id(link_id),)
+            )
 
         return matching_links
 
@@ -91,13 +95,15 @@ class LinksTable(SqliteTable):
                 not null,
             url
                 unique
+                not null,
+            date_saved
                 not null
         )
     '''
 
     def get_all(self):
         with self._connection as connection:
-            return connection.execute('select link_id, url from links').fetchall()
+            return connection.execute('select link_id, url, date_saved from links').fetchall()
 
     def get_id_of_link_with_url(self, an_url):
         with self._connection as connection:
@@ -109,22 +115,19 @@ class LinksTable(SqliteTable):
 
             return desired_id
 
-    def save(self, an_url):
+    def save(self, an_url, a_date):
         with self._connection as connection:
             connection.execute(
-                'insert into links(url) values(?)',
-                (an_url,)
+                'insert into links(url, date_saved) values(?, ?)',
+                (an_url, a_date)
             )
 
-    def get_url_of_link_with_id(self, a_link_id):
+    def get_url_and_date_of_link_with_id(self, a_link_id):
         with self._connection as connection:
-            row_with_url_of_link_with_given_url = connection.execute(
-                'select url from links where link_id = ?',
+            return connection.execute(
+                'select url, date_saved from links where link_id = ?',
                 (a_link_id,)
             ).fetchone()
-            desired_url = row_with_url_of_link_with_given_url[0]
-
-            return desired_url
 
 
 class TagsTable(SqliteTable):
@@ -141,7 +144,7 @@ class TagsTable(SqliteTable):
             )
     '''
 
-    def save_tags_for_link(self, link_id, tags):
+    def save_tags_for_link_with_id(self, link_id, tags):
         with self._connection as connection:
             connection.executemany(
                 'insert into tags(link_id, name) values(?, ?)',

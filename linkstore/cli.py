@@ -19,7 +19,5 @@ def save(url, tags):
 @linkstore_cli.command()
 @argument('tag_filter')
 def list(tag_filter):
-    matching_links = linkstore.find_by_tag(tag_filter)
-
-    for matching_link in matching_links:
-        print(matching_link[0])
+    for matching_link in linkstore.find_by_tag(tag_filter):
+        print('  |  '.join([matching_link[0], matching_link[1]]))
