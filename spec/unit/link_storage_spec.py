@@ -73,8 +73,8 @@ with description('the SQLite link storage'):
 
     with context('when retrieving all links'):
         with it('returns all previously saved links'):
-            self.a_date = '18/12/2015'
-            link_storage = an_in_memory_sqlite_link_storage_on_date(self.a_date)
+            a_date = '18/12/2015'
+            link_storage = an_in_memory_sqlite_link_storage_on_date(a_date)
 
             links_to_save = [
                 ('an url', ('a tag',)),
@@ -89,7 +89,7 @@ with description('the SQLite link storage'):
 
             all_retrieved_links = link_storage.get_all()
             expect(all_retrieved_links).to(
-                equal([ (url, self.a_date, tags) for url, tags in all_saved_links ])
+                equal([ (url, a_date, tags) for url, tags in all_saved_links ])
             )
 
 

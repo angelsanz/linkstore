@@ -33,11 +33,9 @@ class SqliteLinkStorage(object):
 
     def _pack_given_tag_or_tags(self, tag_or_tags):
         if isinstance(tag_or_tags, basestring):
-            tags_to_save = (tag_or_tags,)
-        else:
-            tags_to_save = tag_or_tags
+            return (tag_or_tags,)
 
-        return tags_to_save
+        return tag_or_tags
 
     def find_by_tag(self, a_tag):
         matching_links = []
@@ -107,11 +105,11 @@ class LinksTable(SqliteTable):
 
     def get_id_of_link_with_url(self, an_url):
         with self._connection as connection:
-            row_with_id_of_link_with_given_url = connection.execute(
+            row_of_link_with_given_url = connection.execute(
                 'select link_id from links where url = ?',
                 (an_url,)
             ).fetchone()
-            desired_id = row_with_id_of_link_with_given_url[0]
+            desired_id = row_of_link_with_given_url[0]
 
             return desired_id
 
