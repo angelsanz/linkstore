@@ -4,6 +4,7 @@ from linkstore.clock import Clock
 
 from doublex import Stub
 
+
 def before_scenario(context, scenario):
     a_dummy_date = '18/12/2015'
     with Stub(Clock) as clock_dummy:

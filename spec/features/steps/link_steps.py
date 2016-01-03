@@ -1,6 +1,5 @@
 from expects import expect, contain
 from doublex import Mock
-from doublex_expects import have_been_satisfied
 
 from linkstore.linkstore import Linkstore
 from linkstore.link_storage import SqliteLinkStorage
@@ -56,8 +55,6 @@ def save_link_with_given_tag(context, an_url, given_tag):
 
 
     context.linkstore.save_link(context.an_url, given_tag)
-
-    expect(clock_mock).to(have_been_satisfied)
 
 @when(u'I retrieve all links with tag "{given_tag}"')
 def retrieve_all_links_with_given_tag(context, given_tag):
