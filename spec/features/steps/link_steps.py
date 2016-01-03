@@ -1,11 +1,9 @@
-from expects import expect, contain
-from doublex import Mock
+from expects import expect, contain, equal
+from doublex import Stub
 
 from linkstore.linkstore import Linkstore
-from linkstore.link_storage import SqliteLinkStorage
+from linkstore.link_storage import SqliteLinkStorage, SqliteConnectionFactory
 from linkstore.clock import Clock
-
-from .helpers import tuple_containing
 
 
 @given(u'the URL "{an_url}" and the tag "{a_tag}"')
@@ -43,16 +41,11 @@ def verify_link_was_saved_with_both_tags(context):
 
 
 
-@given(u'I have saved the URL "{an_url}" with tag "{given_tag}"')
-def save_link_with_given_tag(context, an_url, given_tag):
-    context.a_date = "18/12/2015"
-    with Mock(Clock) as clock_mock:
-        clock_mock.date_of_today().returns(context.a_date)
-
-    context.link_storage = SqliteLinkStorage(clock_mock, in_memory=True)
-    context.linkstore = Linkstore(context.link_storage)
+@given(u'I have saved the URL "{an_url}" with tag "{given_tag}" on "{given_date}"')
+def save_link_with_given_tag(context, an_url, given_tag, given_date):
     context.an_url = an_url
-
+    context.a_date = given_date
+    context.linkstore = Linkstore(an_in_memory_sqlite_link_storage_on_date(context.a_date))
 
     context.linkstore.save_link(context.an_url, given_tag)
 
@@ -65,3 +58,49 @@ def verify_saved_link_is_present(context):
     expect(context.all_links_with_given_tag).to(
         contain(tuple_containing(context.an_url, context.a_date))
     )
+
+
+
+@given(u'I have saved the links')
+def save_links_from_context_table(context):
+    context.saved_links = []
+    connection = SqliteConnectionFactory.create_in_memory()
+
+    for link_row in context.table:
+        context.linkstore = Linkstore(SqliteLinkStorage(connection, stubbed_clock_on_date(link_row['date saved'])))
+
+        link_to_save = (link_row['URL'], (link_row['tag'],))
+        context.linkstore.save_link(*link_to_save)
+        context.saved_links.append(link_to_save)
+
+@when(u'I retrieve all links')
+def retrieve_all_links(context):
+    context.all_links = context.linkstore.get_all()
+
+@then(u'I should get all the previously saved links')
+def verify_all_saved_links_are_present(context):
+    expect(len(context.all_links)).to(equal(len(context.saved_links)))
+
+    for saved_link in context.saved_links:
+        expect(context.all_links).to(
+            contain(tuple_containing(*saved_link))
+        )
+
+
+def tuple_containing(*values):
+    return contain(*values)
+
+def an_in_memory_sqlite_link_storage_on_any_date():
+    return an_in_memory_sqlite_link_storage_on_date('18/12/2015')
+
+def an_in_memory_sqlite_link_storage_on_date(a_date):
+    return SqliteLinkStorage(
+        SqliteConnectionFactory.create_in_memory(),
+        stubbed_clock_on_date(a_date)
+    )
+
+def stubbed_clock_on_date(a_date):
+    with Stub(Clock) as clock_stub:
+        clock_stub.date_of_today().returns(a_date)
+
+    return clock_stub

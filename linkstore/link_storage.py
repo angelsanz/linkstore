@@ -2,14 +2,11 @@ import os
 from os import path
 import sqlite3
 
-from .clock import Clock
-
 
 class SqliteLinkStorage(object):
-    def __init__(self, clock=None, in_memory=False):
-        self._clock = clock if clock is not None else Clock()
+    def __init__(self, connection_to_database, clock):
+        self._clock = clock
 
-        connection_to_database = SqliteConnectionFactory.create(in_memory)
         self._links_table = LinksTable(connection_to_database)
         self._tags_table = TagsTable(connection_to_database)
 
@@ -50,16 +47,13 @@ class SqliteLinkStorage(object):
 
 class SqliteConnectionFactory(object):
     @staticmethod
-    def create(in_memory):
-        if in_memory:
-            return SqliteConnectionFactory.create_in_memory()
-
+    def create_autoclosing_on_disk():
         return AutoclosingSqliteConnection()
 
-    @staticmethod
-    def create_in_memory():
+    @classmethod
+    def create_in_memory(cls):
         connection_to_in_memory_database = sqlite3.connect(':memory:')
-        SqliteConnectionFactory._enable_enforcement_of_foreign_key_constraints(connection_to_in_memory_database)
+        cls._enable_enforcement_of_foreign_key_constraints(connection_to_in_memory_database)
 
         return connection_to_in_memory_database
 
@@ -67,10 +61,10 @@ class SqliteConnectionFactory(object):
     def _enable_enforcement_of_foreign_key_constraints(an_sqlite_connection):
         an_sqlite_connection.execute('pragma foreign_keys = on')
 
-    @staticmethod
-    def create_on_disk(data_directory):
+    @classmethod
+    def create_on_disk(cls, data_directory):
         connection_to_on_disk_database = sqlite3.connect(data_directory.path_to_database_file)
-        SqliteConnectionFactory._enable_enforcement_of_foreign_key_constraints(connection_to_on_disk_database)
+        cls._enable_enforcement_of_foreign_key_constraints(connection_to_on_disk_database)
 
         return connection_to_on_disk_database
 
@@ -179,8 +173,8 @@ class AutoclosingSqliteConnection(object):
 
         return self._current_connection
 
-    def __exit__(self, type, value, traceback):
-        self._current_connection.__exit__(type, value, traceback)
+    def __exit__(self, type_, value, traceback):
+        self._current_connection.__exit__(type_, value, traceback)
         self._current_connection.close()
 
         return False

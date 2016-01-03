@@ -58,3 +58,14 @@ with description('the link store'):
             expect(link_storage_spy.find_by_tag).to(
                 have_been_called_with(a_tag).once
             )
+
+    with context('when retrieving all links'):
+        with it('delegates to the storage'):
+            link_storage_spy = Spy(SqliteLinkStorage)
+            linkstore = Linkstore(link_storage_spy)
+
+            linkstore.get_all()
+
+            expect(link_storage_spy.get_all).to(
+                have_been_called_with().once
+            )

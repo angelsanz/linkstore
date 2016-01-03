@@ -2,10 +2,10 @@ from expects import expect, equal, raise_error
 from doublex import Stub, Spy
 from doublex_expects import have_been_called, have_been_called_with
 
-from linkstore.link_storage import SqliteLinkStorage, AutoclosingSqliteConnection
+from linkstore.link_storage import SqliteLinkStorage, AutoclosingSqliteConnection, SqliteConnectionFactory
 from linkstore.clock import Clock
 
-from .helpers import an_in_memory_sqlite_link_storage_on_date, an_in_memory_sqlite_link_storage_on_any_date
+from ..helpers import an_in_memory_sqlite_link_storage_on_date, an_in_memory_sqlite_link_storage_on_any_date
 
 
 with description('the SQLite link storage'):
@@ -15,20 +15,20 @@ with description('the SQLite link storage'):
             an_url = 'an url'
             a_tag = 'favourites'
 
-            expect(lambda: link_storage.save(an_url, a_tag)).not_to(raise_error(TypeError))
+            expect(lambda: link_storage.save(an_url, a_tag)).not_to(raise_error)
 
         with it('can be given a tuple of tags'):
             link_storage = an_in_memory_sqlite_link_storage_on_any_date()
             an_url = 'an url'
             some_tags = ('favourites', 'starred', 'unmissables')
 
-            expect(lambda: link_storage.save(an_url, some_tags)).not_to(raise_error(TypeError))
+            expect(lambda: link_storage.save(an_url, some_tags)).not_to(raise_error)
 
         with it('delegates to the clock in order to get the current date'):
             with Spy(Clock) as clock_spy:
                 clock_spy.date_of_today().returns('18/12/2015')
 
-            link_storage = SqliteLinkStorage(clock_spy, in_memory=True)
+            link_storage = SqliteLinkStorage(SqliteConnectionFactory.create_in_memory(), clock_spy)
             an_url = 'an url'
             a_tag = 'favourites'
 
