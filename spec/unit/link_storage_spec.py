@@ -1,6 +1,6 @@
 import sqlite3
 
-from linkstore.link_storage import SqliteLinkStorage, AutoclosingSqliteConnection, SqliteConnectionFactory
+from linkstore.link_storage import AutoclosingSqliteConnection
 from linkstore.clock import Clock
 
 from expects import expect, equal, raise_error
@@ -9,35 +9,35 @@ from doublex_expects import have_been_called, have_been_called_with
 
 from ..helpers import (
     an_in_memory_sqlite_link_storage_on_date,
-    an_in_memory_sqlite_link_storage_on_any_date
+    an_in_memory_sqlite_link_storage_on_any_date,
+    an_in_memory_sqlite_link_storage_with_clock
 )
 
 
 with description('the SQLite link storage'):
     with context('when saving links'):
-        with it('can be given a single tag'):
-            link_storage = an_in_memory_sqlite_link_storage_on_any_date()
-            an_url = 'an url'
-            a_tag = 'favourites'
+        with before.each:
+            self.an_url = 'an url'
 
-            expect(lambda: link_storage.save(an_url, a_tag)).not_to(raise_error)
+        with it('can be given a single tag'):
+            a_tag = 'favourites'
+            link_storage = an_in_memory_sqlite_link_storage_on_any_date()
+
+            expect(lambda: link_storage.save(self.an_url, a_tag)).not_to(raise_error)
 
         with it('can be given a tuple of tags'):
-            link_storage = an_in_memory_sqlite_link_storage_on_any_date()
-            an_url = 'an url'
             some_tags = ('favourites', 'starred', 'unmissables')
+            link_storage = an_in_memory_sqlite_link_storage_on_any_date()
 
-            expect(lambda: link_storage.save(an_url, some_tags)).not_to(raise_error)
+            expect(lambda: link_storage.save(self.an_url, some_tags)).not_to(raise_error)
 
         with it('delegates to the clock in order to get the current date'):
-            with Spy(Clock) as clock_spy:
-                clock_spy.date_of_today().returns('18/12/2015')
-
-            link_storage = SqliteLinkStorage(SqliteConnectionFactory.create_in_memory(), clock_spy)
-            an_url = 'an url'
             a_tag = 'favourites'
+            with Spy(Clock) as clock_spy:
+                clock_spy.date_of_today().returns('any date whatsoever')
+            link_storage = an_in_memory_sqlite_link_storage_with_clock(clock_spy)
 
-            link_storage.save(an_url, a_tag)
+            link_storage.save(self.an_url, a_tag)
 
             expect(clock_spy.date_of_today).to(have_been_called_with().once)
 
