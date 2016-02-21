@@ -19,14 +19,14 @@ $ pip install linkstore
 $ linkstore --help
 ```
 
-You can read about the [features](./spec/features)
+You can also read about the [features](./spec/features)
 and take a look at the [spec](./spec).
 
 
 ## License
 
 This project is licensed under the
-[MIT License](http://opensource.org/licenses/MIT).
+[MIT License](https://opensource.org/licenses/MIT).
 For more details, see the [`LICENSE`](./LICENSE) file
 at the root of the repository.
 
