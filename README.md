@@ -6,6 +6,22 @@
 [![Codacy Grade][codacy-image]][codacy-url]
 [![Latest PyPI Version][pypi-image]][pypi-url]
 
+## Installation
+
+```bash
+$ pip install linkstore
+```
+
+## Usage
+
+
+```bash
+$ linkstore --help
+```
+
+You can read about the [features](./spec/features)
+and take a look at the [spec](./spec).
+
 
 ## License
 
