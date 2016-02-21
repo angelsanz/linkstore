@@ -11,15 +11,14 @@ class SqliteLinkStorage(object):
         self._tags_table = TagsTable(connection_to_database)
 
     def get_all(self):
-        all_links = []
-        for link_id, url, date_saved in self._links_table.get_all():
-            all_links.append((
+        return [
+            (
                 url,
                 date_saved,
                 self._tags_table.get_tags_of_link_with_id(link_id)
-            ))
-
-        return all_links
+            )
+            for link_id, url, date_saved in self._links_table.get_all()
+        ]
 
     def save(self, an_url, tag_or_tags):
         self._links_table.save(an_url, self._clock.date_of_today())
@@ -35,14 +34,11 @@ class SqliteLinkStorage(object):
         return tag_or_tags
 
     def find_by_tag(self, a_tag):
-        matching_links = []
-        for link_id in self._tags_table.get_ids_of_links_with_tag(a_tag):
-            matching_links.append(
-                self._links_table.get_url_and_date_of_link_with_id(link_id) +
-                (self._tags_table.get_tags_of_link_with_id(link_id),)
-            )
-
-        return matching_links
+        return [
+            self._links_table.get_url_and_date_of_link_with_id(link_id) +
+            (self._tags_table.get_tags_of_link_with_id(link_id),)
+            for link_id in self._tags_table.get_ids_of_links_with_tag(a_tag)
+        ]
 
 
 class SqliteConnectionFactory(object):
