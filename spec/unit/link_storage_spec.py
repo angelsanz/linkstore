@@ -1,11 +1,16 @@
-from expects import expect, equal, raise_error
-from doublex import Stub, Spy
-from doublex_expects import have_been_called, have_been_called_with
+import sqlite3
 
 from linkstore.link_storage import SqliteLinkStorage, AutoclosingSqliteConnection, SqliteConnectionFactory
 from linkstore.clock import Clock
 
-from ..helpers import an_in_memory_sqlite_link_storage_on_date, an_in_memory_sqlite_link_storage_on_any_date
+from expects import expect, equal, raise_error
+from doublex import Stub, Spy
+from doublex_expects import have_been_called, have_been_called_with
+
+from ..helpers import (
+    an_in_memory_sqlite_link_storage_on_date,
+    an_in_memory_sqlite_link_storage_on_any_date
+)
 
 
 with description('the SQLite link storage'):
@@ -96,7 +101,7 @@ with description('the SQLite link storage'):
     with description('the autoclosing SQLite connection'):
         with context('when used as a context manager'):
             with it('closes the connection after the with block is executed'):
-                sqlite_connection = Spy()
+                sqlite_connection = Spy(sqlite3.Connection)
                 with Stub() as sqlite_connection_provider_stub:
                     sqlite_connection_provider_stub.get().returns(sqlite_connection)
 
