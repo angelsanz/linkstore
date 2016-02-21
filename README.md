@@ -6,14 +6,15 @@
 [![Codacy Grade][codacy-image]][codacy-url]
 [![Latest PyPI Version][pypi-image]][pypi-url]
 
+
 ## Installation
 
 ```bash
 $ pip install linkstore
 ```
 
-## Usage
 
+## Usage
 
 ```bash
 $ linkstore --help
@@ -40,4 +41,3 @@ at the root of the repository.
 [codacy-url]:      https://www.codacy.com/app/angelsanzgit/linkstore
 [pypi-image]:      https://img.shields.io/pypi/v/linkstore.svg
 [pypi-url]:        https://pypi.python.org/pypi/linkstore
-
