@@ -15,7 +15,7 @@ class SqliteLinkStorage(object):
             (
                 url,
                 date_saved,
-                self._tags_table.get_tags_of_link_with_id(link_id)
+                self._tags_table.get_tags_by_id(link_id)
             )
             for link_id, url, date_saved in self._links_table.get_all()
         ]
@@ -23,7 +23,7 @@ class SqliteLinkStorage(object):
     def save(self, an_url, tag_or_tags):
         self._links_table.save(an_url, self._clock.date_of_today())
 
-        id_of_newly_created_link = self._links_table.get_id_of_link_with_url(an_url)
+        id_of_newly_created_link = self._links_table.get_id_by_url(an_url)
         tags_to_save = self._pack_given_tag_or_tags(tag_or_tags)
         self._tags_table.save_tags_for_link_with_id(id_of_newly_created_link, tags_to_save)
 
@@ -35,8 +35,8 @@ class SqliteLinkStorage(object):
 
     def find_by_tag(self, a_tag):
         return [
-            self._links_table.get_url_and_date_of_link_with_id(link_id) +
-            (self._tags_table.get_tags_of_link_with_id(link_id),)
+            self._links_table.get_url_and_date_by_id(link_id) +
+            (self._tags_table.get_tags_by_id(link_id),)
             for link_id in self._tags_table.get_ids_of_links_with_tag(a_tag)
         ]
 
@@ -93,7 +93,7 @@ class LinksTable(SqliteTable):
         with self._connection as connection:
             return connection.execute('select link_id, url, date_saved from links').fetchall()
 
-    def get_id_of_link_with_url(self, an_url):
+    def get_id_by_url(self, an_url):
         with self._connection as connection:
             row_of_link_with_given_url = connection.execute(
                 'select link_id from links where url = ?',
@@ -110,7 +110,7 @@ class LinksTable(SqliteTable):
                 (an_url, a_date)
             )
 
-    def get_url_and_date_of_link_with_id(self, a_link_id):
+    def get_url_and_date_by_id(self, a_link_id):
         with self._connection as connection:
             return connection.execute(
                 'select url, date_saved from links where link_id = ?',
@@ -148,7 +148,7 @@ class TagsTable(SqliteTable):
 
             return (link_id for (link_id,) in list_of_rows)
 
-    def get_tags_of_link_with_id(self, a_link_id):
+    def get_tags_by_id(self, a_link_id):
         with self._connection as connection:
             list_of_rows = connection.execute(
                 'select name from tags where link_id = ?',
