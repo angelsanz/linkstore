@@ -24,14 +24,14 @@ class SqliteLinkStorage(object):
         self._links_table.save(an_url, self._clock.date_of_today())
 
         id_of_newly_created_link = self._links_table.get_id_by_url(an_url)
-        tags_to_save = self._pack_given_tag_or_tags(tag_or_tags)
-        self._tags_table.save_tags_for_link_with_id(id_of_newly_created_link, tags_to_save)
+        tags = self._pack_given_tag_or_tags(tag_or_tags)
+        self._tags_table.save_tags_for_link_with_id(id_of_newly_created_link, tags)
 
     def _pack_given_tag_or_tags(self, tag_or_tags):
-        if isinstance(tag_or_tags, basestring):
-            return (tag_or_tags,)
+        if isinstance(tag_or_tags, tuple):
+            return tag_or_tags
 
-        return tag_or_tags
+        return (tag_or_tags,)
 
     def find_by_tag(self, a_tag):
         return [
