@@ -2,4 +2,4 @@
 
 set -e
 
-behave spec/features
+mamba spec/acceptance-integration

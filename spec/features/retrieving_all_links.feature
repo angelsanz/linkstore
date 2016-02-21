@@ -5,10 +5,6 @@ Feature: Retrieving all links
 
 
     Scenario: Retrieving all links
-        Given I have saved the links
-            | URL                               | tag          | date saved    |
-            | "https://www.example.com/"        | "favourites" | 12/03/2008    |
-            | "https://www.another-example.net" | "misc"       | 35/56/89      |
-            | "https://one-more.org"            | "extra"      | 789/23/677785 |
+        Given I have saved some links
         When I retrieve all links
-        Then I should get all the previously saved links
+        Then I should get all the links I had saved
