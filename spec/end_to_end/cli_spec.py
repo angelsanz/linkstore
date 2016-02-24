@@ -65,7 +65,7 @@ with description('the command-line interface'):
 
     with context('when retrieving saved links'):
         with before.each:
-            self.DATE_REGEXP = r'[0-9]{2}/[0-9]{2}/[0-9]{4}'
+            self.DATE_PATTERN = r'[0-9]{2}/[0-9]{2}/[0-9]{4}'
 
         with context('by tag'):
             with it('outputs a line per retrieved link, containing the URL'):
@@ -93,7 +93,7 @@ with description('the command-line interface'):
                     url_of_current_link, tag_of_current_link = links_to_save[line_number]
 
                     expect(line).to(match(url_of_current_link))
-                    expect(line).to(match(self.DATE_REGEXP))
+                    expect(line).to(match(self.DATE_PATTERN))
                     expect(line).not_to(match(tag_of_current_link))
                     expect(line).not_to(match(tag_filter))
 
@@ -117,7 +117,7 @@ with description('the command-line interface'):
                     url_of_current_link, tags_of_current_link = links_to_save[line_number]
 
                     expect(line).to(match(url_of_current_link))
-                    expect(line).to(match(self.DATE_REGEXP))
+                    expect(line).to(match(self.DATE_PATTERN))
 
                     for tag in tags_of_current_link:
                         expect(line).to(match(tag))

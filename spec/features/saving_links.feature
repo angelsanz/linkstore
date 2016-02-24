@@ -3,12 +3,8 @@ Feature: Saving links
     of URLs
     with one or more tags.
 
-    Scenario: saving a link with one tag
+    Scenario: saving a link
         Given an URL and a tag
-        When I request that the URL be saved with that tag
-        Then they should be successfully saved
-
-    Scenario: saving a link with more than one tag
-        Given an URL and some tags
-        When I request that the URL be saved with those tags
+        And a certain date
+        When I request that the URL be saved with that tag on that date
         Then they should be successfully saved

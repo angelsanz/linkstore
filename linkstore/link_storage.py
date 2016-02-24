@@ -4,9 +4,7 @@ import sqlite3
 
 
 class SqliteLinkStorage(object):
-    def __init__(self, connection_to_database, clock):
-        self._clock = clock
-
+    def __init__(self, connection_to_database):
         self._links_table = LinksTable(connection_to_database)
         self._tags_table = TagsTable(connection_to_database)
 
@@ -14,31 +12,26 @@ class SqliteLinkStorage(object):
         return [
             (
                 url,
-                date_saved,
-                self._tags_table.get_tags_by_id(link_id)
+                self._tags_table.get_tags_by_id(link_id),
+                date_saved
             )
             for link_id, url, date_saved in self._links_table.get_all()
         ]
 
-    def save(self, an_url, tag_or_tags):
-        self._links_table.save(an_url, self._clock.date_of_today())
+    def save(self, link):
+        self._links_table.save(link.url, link.date)
 
-        id_of_newly_created_link = self._links_table.get_id_by_url(an_url)
-        tags = self._pack_given_tag_or_tags(tag_or_tags)
-        self._tags_table.save_tags_for_link_with_id(id_of_newly_created_link, tags)
-
-    def _pack_given_tag_or_tags(self, tag_or_tags):
-        if isinstance(tag_or_tags, tuple):
-            return tag_or_tags
-
-        return (tag_or_tags,)
+        id_of_newly_created_link = self._links_table.get_id_by_url(link.url)
+        self._tags_table.save_tags_for_link_with_id(id_of_newly_created_link, link.tags)
 
     def find_by_tag(self, a_tag):
-        return [
-            self._links_table.get_url_and_date_by_id(link_id) +
-            (self._tags_table.get_tags_by_id(link_id),)
-            for link_id in self._tags_table.get_ids_of_links_with_tag(a_tag)
-        ]
+        matching_links = []
+        for link_id in self._tags_table.get_ids_of_links_with_tag(a_tag):
+            url, date = self._links_table.get_url_and_date_by_id(link_id)
+
+            matching_links.append((url, self._tags_table.get_tags_by_id(link_id), date))
+
+        return matching_links
 
 
 class SqliteConnectionFactory(object):
@@ -54,8 +47,8 @@ class SqliteConnectionFactory(object):
         return connection_to_in_memory_database
 
     @staticmethod
-    def _enable_enforcement_of_foreign_key_constraints(an_sqlite_connection):
-        an_sqlite_connection.execute('pragma foreign_keys = on')
+    def _enable_enforcement_of_foreign_key_constraints(sqlite_connection):
+        sqlite_connection.execute('pragma foreign_keys = on')
 
     @classmethod
     def create_on_disk(cls, data_directory):

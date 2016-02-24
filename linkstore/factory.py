@@ -1,10 +1,15 @@
+from .link import Link
 from .linkstore import Linkstore
 from .link_storage import SqliteLinkStorage, SqliteConnectionFactory
-from .clock import Clock
 
 
-def create():
-    return Linkstore(SqliteLinkStorage(
-        SqliteConnectionFactory.create_autoclosing_on_disk(),
-        Clock()
-    ))
+def create_linkstore():
+    return Linkstore(
+        SqliteLinkStorage(
+            SqliteConnectionFactory.create_autoclosing_on_disk()
+        ),
+        create_link
+    )
+
+def create_link(link_record):
+    return Link(*link_record)
