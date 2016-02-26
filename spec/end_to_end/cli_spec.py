@@ -2,7 +2,6 @@ import subprocess
 import shutil
 
 from expects import expect, equal, be_empty, match
-from ..helpers import have_the_same_length_as
 
 from linkstore.link_storage import ApplicationDataDirectory
 
@@ -68,37 +67,41 @@ with description('the command-line interface'):
             self.DATE_PATTERN = r'[0-9]{2}/[0-9]{2}/[0-9]{4}'
 
         with context('by tag'):
-            with it('outputs a line per retrieved link, containing the URL'):
-                tag_filter = 'some_tag'
+            with before.each:
+                self.tag_filter = 'some_tag'
                 links_to_save = [
-                    ('some url',        tag_filter),
-                    ('another url',     tag_filter),
+                    ('some url',        self.tag_filter),
+                    ('another url',     self.tag_filter),
                     ('yet another url', 'a_different_tag')
                 ]
 
                 for link in links_to_save:
                     invoke_cli([ 'save', link[0], link[1] ])
+                self.saved_links = links_to_save
 
 
-                execution_result = invoke_cli([ 'list', tag_filter ])
+                self.execution_result = invoke_cli([ 'list', self.tag_filter ])
 
+            with it('does not fail'):
+                expect(self.execution_result.exit_code).to(equal(0))
 
-                expect(execution_result.exit_code).to(equal(0))
+            with it('outputs a line per matching link'):
+                number_of_lines_in_output = len(self.execution_result.lines_in_output)
+                number_of_matching_links = len([ link for link in self.saved_links if link[1] == self.tag_filter ])
 
-                number_of_lines_in_output = len(execution_result.lines_in_output)
-                number_of_matching_links = len([ link for link in links_to_save if link[1] == tag_filter ])
                 expect(number_of_lines_in_output).to(equal(number_of_matching_links))
 
-                for line_number, line in enumerate(execution_result.lines_in_output):
-                    url_of_current_link, tag_of_current_link = links_to_save[line_number]
+            with it('outputs an URL per line'):
+                for line_number, line in enumerate(self.execution_result.lines_in_output):
+                    url, tag = self.saved_links[line_number]
 
-                    expect(line).to(match(url_of_current_link))
+                    expect(line).to(match(url))
                     expect(line).to(match(self.DATE_PATTERN))
-                    expect(line).not_to(match(tag_of_current_link))
-                    expect(line).not_to(match(tag_filter))
+                    expect(line).not_to(match(tag))
+                    expect(line).not_to(match(self.tag_filter))
 
         with context('all saved links'):
-            with it('outputs a line per retrieved link, containing its URL and tags'):
+            with before.each:
                 links_to_save = [
                     ('some url',        ('a tag',)),
                     ('another url',     ('first tag', 'second tag')),
@@ -107,21 +110,28 @@ with description('the command-line interface'):
 
                 for link in links_to_save:
                     invoke_cli([ 'save', link[0] ] + list(link[1]))
+                self.saved_links = links_to_save
 
-                execution_result = invoke_cli([ 'list' ])
+                self.execution_result = invoke_cli([ 'list' ])
 
-                expect(execution_result.exit_code).to(equal(0))
-                expect(execution_result.lines_in_output).to(have_the_same_length_as(links_to_save))
+            with it('does not fail'):
+                expect(self.execution_result.exit_code).to(equal(0))
 
-                for line_number, line in enumerate(execution_result.lines_in_output):
-                    url_of_current_link, tags_of_current_link = links_to_save[line_number]
+            with it('outputs a line per saved link'):
+                number_of_lines_in_output = len(self.execution_result.lines_in_output)
+                number_of_saved_links = len(self.saved_links)
 
-                    expect(line).to(match(url_of_current_link))
+                expect(number_of_lines_in_output).to(equal(number_of_saved_links))
+
+            with it('outputs the URL and tags of each saved link per line'):
+                for line_number, line in enumerate(self.execution_result.lines_in_output):
+                    url, tags = self.saved_links[line_number]
+
+                    expect(line).to(match(url))
                     expect(line).to(match(self.DATE_PATTERN))
 
-                    for tag in tags_of_current_link:
+                    for tag in tags:
                         expect(line).to(match(tag))
-
 
     with after.each:
         shutil.rmtree(ApplicationDataDirectory().path)
