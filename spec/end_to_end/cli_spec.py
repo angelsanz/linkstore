@@ -11,7 +11,7 @@ def invoke_cli(arguments):
 
     try:
         output = subprocess.check_output(
-            [ 'coverage', 'run', '--append', '--rcfile=.coveragerc_end-to-end' ] +
+            [ 'coverage', 'run', '--append' ] +
             [ path_to_cli_binary ] +
             arguments
         )
@@ -91,20 +91,27 @@ with description('the command-line application'):
                 expect(number_of_lines_in_output).to(equal(number_of_matching_links))
 
             with context('output lines'):
-                with _it('have an id'):
+                with it('have an id'):
                     NUMBER_AT_BEGINNING_OF_LINE_PATTERN = r'^\d+'
 
                     for line in self.execution_result.lines_in_output:
                         expect(line).to(match(NUMBER_AT_BEGINNING_OF_LINE_PATTERN))
 
-            with it('outputs an URL and a date per line, but no tags'):
-                for line_number, line in enumerate(self.execution_result.lines_in_output):
-                    url, tag = self.saved_links[line_number]
+                with it('have an URL'):
+                    for line_number, line in enumerate(self.execution_result.lines_in_output):
+                        url = self.saved_links[line_number][0]
+                        expect(line).to(match(url))
 
-                    expect(line).to(match(url))
-                    expect(line).to(match(self.DATE_PATTERN))
-                    expect(line).not_to(match(tag))
-                    expect(line).not_to(match(self.tag_filter))
+                with it('have a date'):
+                    for line in self.execution_result.lines_in_output:
+                        expect(line).to(match(self.DATE_PATTERN))
+
+                with it('have no tags'):
+                    for line_number, line in enumerate(self.execution_result.lines_in_output):
+                        tag = self.saved_links[line_number][1]
+
+                        expect(line).not_to(match(tag))
+                        expect(line).not_to(match(self.tag_filter))
 
         with context('all saved links'):
             with before.each:

@@ -2,6 +2,8 @@ import os
 from os import path
 import sqlite3
 
+from .link import LinkRecord
+
 
 class SqliteLinkStorage(object):
     def __init__(self, table_gateways):
@@ -10,7 +12,8 @@ class SqliteLinkStorage(object):
 
     def get_all(self):
         return [
-            (
+            LinkRecord(
+                link_id,
                 url,
                 self._tags_table.get_tags_by_id(link_id),
                 date_saved
@@ -25,13 +28,13 @@ class SqliteLinkStorage(object):
         self._tags_table.save_tags_for_link_with_id(id_of_newly_created_link, link.tags)
 
     def find_by_tag(self, tag):
-        matching_links = []
+        records_of_matching_links = []
         for link_id in self._tags_table.get_ids_of_links_with_tag(tag):
             url, date = self._links_table.get_url_and_date_by_id(link_id)
 
-            matching_links.append((url, self._tags_table.get_tags_by_id(link_id), date))
+            records_of_matching_links.append(LinkRecord(link_id, url, self._tags_table.get_tags_by_id(link_id), date))
 
-        return matching_links
+        return records_of_matching_links
 
     def replace_tag_in_link_with_url(self, url, tag_modification):
         id_of_relevant_link = self._links_table.get_id_by_url(url)
@@ -39,6 +42,7 @@ class SqliteLinkStorage(object):
 
     def replace_tag_in_link_with_id(self, link_id, tag_modification):
         self._tags_table.replace_tag_in_link_with_id(link_id, tag_modification)
+
 
 class SqliteConnectionFactory(object):
     @staticmethod

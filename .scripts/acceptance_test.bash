@@ -2,4 +2,4 @@
 
 set -e
 
-mamba spec/acceptance-integration
+mamba spec/acceptance-integration --enable-coverage

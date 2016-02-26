@@ -1,6 +1,0 @@
-[run]
-include = linkstore/cli.py, linkstore/link_storage.py, linkstore/clock.py, linkstore/factory.py
-branch = True
-
-[report]
-show_missing = True

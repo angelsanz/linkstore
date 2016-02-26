@@ -1,13 +1,13 @@
 import random
 
-from doublex import Stub
-
 from linkstore.link import Link
-from linkstore.factory import create_link
 
 
 def some_links():
-    return map(create_link, data_for_some_links())
+    return map(create_link_from_tuple, data_for_some_links())
+
+def create_link_from_tuple(link_tuple):
+    return Link(*link_tuple)
 
 def data_for_some_links():
     return [
@@ -23,23 +23,9 @@ def data_for_some_links():
 def one_link():
     return random.choice(some_links())
 
-def some_stubbed_links():
-    return map(create_stubbed_link, data_for_some_links())
-
-def create_stubbed_link(link_record):
-    return LinkStub(*link_record)
-
-def LinkStub(url, tags, date):
-    with Stub(Link) as link_stub:
-        link_stub.url.returns(url)
-        link_stub.tags.returns(tags)
-        link_stub.date.returns(date)
-
-    return link_stub
-
-def some_stubbed_links_with_tags(tags):
+def some_links_with_tags(tags):
     return [
-        LinkStub(url, tags, date)
+        create_link_from_tuple((url, tags, date))
         for url, _, date in data_for_some_links()
     ]
 
