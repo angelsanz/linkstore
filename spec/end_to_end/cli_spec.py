@@ -1,7 +1,7 @@
 import subprocess
 import shutil
 
-from expects import expect, equal, be_empty, match
+from expects import expect, equal, be_empty, match, have_length
 
 from linkstore.link_storage import ApplicationDataDirectory
 
@@ -31,7 +31,7 @@ class ExecutionResult(object):
         return output.strip().split('\n')
 
 
-with description('the command-line interface'):
+with description('the command-line application'):
     with context('when saving links'):
         with before.each:
             self.an_url = 'https://www.example.com/'
@@ -60,7 +60,6 @@ with description('the command-line interface'):
 
                 expect(execution_result.exit_code).to(equal(0))
                 expect(execution_result.lines_in_output).to(be_empty)
-
 
     with context('when retrieving saved links'):
         with before.each:
@@ -91,7 +90,14 @@ with description('the command-line interface'):
 
                 expect(number_of_lines_in_output).to(equal(number_of_matching_links))
 
-            with it('outputs an URL per line'):
+            with context('output lines'):
+                with _it('have an id'):
+                    NUMBER_AT_BEGINNING_OF_LINE_PATTERN = r'^\d+'
+
+                    for line in self.execution_result.lines_in_output:
+                        expect(line).to(match(NUMBER_AT_BEGINNING_OF_LINE_PATTERN))
+
+            with it('outputs an URL and a date per line, but no tags'):
                 for line_number, line in enumerate(self.execution_result.lines_in_output):
                     url, tag = self.saved_links[line_number]
 
@@ -132,6 +138,33 @@ with description('the command-line interface'):
 
                     for tag in tags:
                         expect(line).to(match(tag))
+
+    with context('when re-tagging links'):
+        with before.each:
+            self.an_url = 'https://www.example.com/'
+            self.old_tag = 'favourites'
+            invoke_cli([ 'save', self.an_url, self.old_tag ])
+
+            self.new_tag = 'not-so-favourites'
+            self.execution_result = invoke_cli([ 'retag', '1' ] + [ self.old_tag, self.new_tag ])
+
+        with it('does not fail'):
+            expect(self.execution_result.exit_code).to(equal(0))
+
+        with it('does not output anything'):
+            expect(self.execution_result.lines_in_output).to(be_empty)
+
+        with it('removes the old tag'):
+            links_matching_old_tag = invoke_cli([ 'list', self.old_tag ]).lines_in_output
+
+            expect(links_matching_old_tag).to(be_empty)
+
+        with it('adds the new tag'):
+            links_matching_new_tag = invoke_cli([ 'list', self.new_tag ]).lines_in_output
+
+            expect(links_matching_new_tag).to(have_length(1))
+            expect(links_matching_new_tag[0]).to(match(self.an_url))
+
 
     with after.each:
         shutil.rmtree(ApplicationDataDirectory().path)

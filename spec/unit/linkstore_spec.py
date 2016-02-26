@@ -6,7 +6,7 @@ from linkstore.link import Link
 from linkstore.linkstore import Linkstore
 from linkstore.link_storage import SqliteLinkStorage
 
-from ..fixtures import data_for_some_links
+from ..fixtures import data_for_some_links, a_tag_modification
 
 
 with description('the link store'):
@@ -31,7 +31,6 @@ with description('the link store'):
 
             expect(return_value).to(be_none)
 
-
     with context('when retrieving links'):
         with context('by tag'):
             with before.each:
@@ -53,19 +52,44 @@ with description('the link store'):
                     expect(self.link_creator_spy).to(have_been_called_with(link_record).once)
 
         with context('all links'):
-            with before.each:
-                with self.link_storage_spy:
-                    self.link_storage_spy.get_all().returns(data_for_some_links())
+            with context('without ids'):
+                with before.each:
+                    with self.link_storage_spy:
+                        self.link_storage_spy.get_all().returns(data_for_some_links())
 
+                with it('delegates to the storage'):
+                    self.linkstore.get_all()
+
+                    expect(self.link_storage_spy.get_all).to(
+                        have_been_called_with().once
+                    )
+
+                with it('calls the creator once per record returned by the storage'):
+                    self.linkstore.get_all()
+
+                    for link_record in data_for_some_links():
+                        expect(self.link_creator_spy).to(have_been_called_with(link_record).once)
+
+            with context('with ids'):
+                with before.each:
+                    with self.link_storage_spy:
+                        self.link_storage_spy.get_all_with_ids().returns(data_for_some_links())
+
+    with context('when modifying a tag of a link'):
+        with context('when identifying the link with a Link object'):
             with it('delegates to the storage'):
-                self.linkstore.get_all()
+                a_link = Stub(Link)
+                self.linkstore.modify_tag(a_link, a_tag_modification())
 
-                expect(self.link_storage_spy.get_all).to(
-                    have_been_called_with().once
+                expect(self.link_storage_spy.replace_tag_in_link_with_url).to(
+                    have_been_called_with(a_link.url, a_tag_modification()).once
                 )
 
-            with it('calls the creator once per record returned by the storage'):
-                self.linkstore.get_all()
+        with context('when identifying the link with its id'):
+            with it('delegates to the storage'):
+                a_link_id = 45
+                self.linkstore.modify_tag_by_id(a_link_id, a_tag_modification())
 
-                for link_record in data_for_some_links():
-                    expect(self.link_creator_spy).to(have_been_called_with(link_record).once)
+                expect(self.link_storage_spy.replace_tag_in_link_with_id).to(
+                    have_been_called_with(a_link_id).once
+                )

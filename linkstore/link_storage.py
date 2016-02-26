@@ -33,6 +33,12 @@ class SqliteLinkStorage(object):
 
         return matching_links
 
+    def replace_tag_in_link_with_url(self, url, tag_modification):
+        id_of_relevant_link = self._links_table.get_id_by_url(url)
+        self.replace_tag_in_link_with_id(id_of_relevant_link, tag_modification)
+
+    def replace_tag_in_link_with_id(self, link_id, tag_modification):
+        self._tags_table.replace_tag_in_link_with_id(link_id, tag_modification)
 
 class SqliteConnectionFactory(object):
     @staticmethod
@@ -149,6 +155,16 @@ class TagsTable(SqliteTable):
             ).fetchall()
 
             return tuple(tag for (tag,) in list_of_rows)
+
+    def replace_tag_in_link_with_id(self, link_id, tag_modification):
+        current_tag = tag_modification.keys()[0]
+        new_tag = tag_modification.values()[0]
+
+        with self._connection as connection:
+            connection.execute(
+                'update tags set name = ? where link_id = ? and name = ?',
+                (new_tag, link_id, current_tag)
+            )
 
 
 class AutoclosingSqliteConnection(object):

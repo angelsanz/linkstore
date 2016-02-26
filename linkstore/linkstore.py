@@ -11,9 +11,15 @@ class Linkstore(object):
 
     def _create_links_from_link_records(self, link_records):
         return [
-            self._link_creator(link_record)
-            for link_record in link_records
+            self._link_creator(record)
+            for record in link_records
         ]
 
     def get_all(self):
         return self._create_links_from_link_records(self._storage.get_all())
+
+    def modify_tag(self, link, tag_modification):
+        self._storage.replace_tag_in_link_with_url(link.url, tag_modification)
+
+    def modify_tag_by_id(self, link_id, tag_modification):
+        self._storage.replace_tag_in_link_with_id(link_id, tag_modification)

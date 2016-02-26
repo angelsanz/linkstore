@@ -1,14 +1,14 @@
 import sqlite3
 
 from linkstore.link import Link
-from linkstore.link_storage import AutoclosingSqliteConnection
+from linkstore.link_storage import SqliteLinkStorage, AutoclosingSqliteConnection, LinksTable, TagsTable
 
 from expects import expect, equal
 from doublex import Stub, Spy, Mock
-from doublex_expects import have_been_called, have_been_called_with, have_been_satisfied_in_any_order
+from doublex_expects import have_been_called, have_been_called_with, have_been_satisfied_in_any_order, anything
 
 from ..helpers import an_in_memory_sqlite_link_storage
-from ..fixtures import some_stubbed_links, LinkStub, some_stubbed_links_with_tags
+from ..fixtures import some_stubbed_links, LinkStub, some_stubbed_links_with_tags, a_tag_modification
 
 
 with description('the SQLite link storage'):
@@ -83,6 +83,32 @@ with description('the SQLite link storage'):
                     for link_stub in saved_links
                 ])
             )
+
+    with context('when replacing a tag of a link'):
+        with before.each:
+            self.tags_table_spy = Spy(TagsTable)
+            links_table_dummy = Stub(LinksTable)
+            self.link_storage = SqliteLinkStorage({'links': links_table_dummy, 'tags': self.tags_table_spy})
+
+        with context('when identifying the link with an url'):
+            with it('asks the TagsTable to replace the tags'):
+                an_url = 'an url'
+
+                self.link_storage.replace_tag_in_link_with_url(an_url, a_tag_modification())
+
+                expect(self.tags_table_spy.replace_tag_in_link_with_id).to(
+                    have_been_called_with(anything, a_tag_modification()).once
+                )
+
+        with context('when identifying the link with an id'):
+            with it('asks the TagsTable to replace the tags'):
+                a_link_id = 32
+
+                self.link_storage.replace_tag_in_link_with_id(a_link_id, a_tag_modification())
+
+                expect(self.tags_table_spy.replace_tag_in_link_with_id).to(
+                    have_been_called_with(a_link_id).once
+                )
 
 
 with description('the autoclosing SQLite connection'):

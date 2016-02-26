@@ -1,3 +1,4 @@
+import click
 from click import group, argument
 
 from . import factory
@@ -28,11 +29,27 @@ def list(tag_filter):
     else:
         print_without_tags_links_tagged_with(tag_filter)
 
-
 def print_all_links():
-    for link in linkstore.get_all():
-        print('  |  '.join([link.url, link.date, '#' + ', #'.join(link.tags)]))
+    for link_id, link in linkstore.get_all():
+        print('  |  '.join([
+            link_id,
+            link.url,
+            link.date,
+            '#' + ', #'.join(link.tags)
+        ]))
 
 def print_without_tags_links_tagged_with(tag_filter):
     for matching_link in linkstore.find_by_tag(tag_filter):
-        print('  |  '.join([matching_link.url, matching_link.date]))
+        print('  |  '.join([
+            id_of_link_with_url(link.url),
+            matching_link.url,
+            matching_link.date
+        ]))
+
+
+@linkstore_cli.command()
+@argument('link_id', type=click.INT)
+@argument('current_tag')
+@argument('new_tag')
+def retag(link_id, current_tag, new_tag):
+    linkstore.modify_tag_by_id(link_id, {current_tag: new_tag})

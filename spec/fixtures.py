@@ -42,3 +42,8 @@ def some_stubbed_links_with_tags(tags):
         LinkStub(url, tags, date)
         for url, _, date in data_for_some_links()
     ]
+
+def a_tag_modification():
+    return {
+        'old tag': 'new tag'
+    }
