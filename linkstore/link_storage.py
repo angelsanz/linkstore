@@ -4,9 +4,9 @@ import sqlite3
 
 
 class SqliteLinkStorage(object):
-    def __init__(self, connection_to_database):
-        self._links_table = LinksTable(connection_to_database)
-        self._tags_table = TagsTable(connection_to_database)
+    def __init__(self, table_gateways):
+        self._links_table = table_gateways['links']
+        self._tags_table = table_gateways['tags']
 
     def get_all(self):
         return [
