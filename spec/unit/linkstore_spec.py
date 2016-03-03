@@ -79,6 +79,7 @@ with description('the link store'):
         with context('when identifying the link with a Link object'):
             with it('delegates to the storage'):
                 a_link = Stub(Link)
+
                 self.linkstore.modify_tag(a_link, a_tag_modification())
 
                 expect(self.link_storage_spy.replace_tag_in_link_with_url).to(
@@ -88,8 +89,32 @@ with description('the link store'):
         with context('when identifying the link with its id'):
             with it('delegates to the storage'):
                 a_link_id = 45
+
                 self.linkstore.modify_tag_by_id(a_link_id, a_tag_modification())
 
                 expect(self.link_storage_spy.replace_tag_in_link_with_id).to(
                     have_been_called_with(a_link_id).once
+                )
+
+    with context('when adding a tag to a link'):
+        with context('when identifying the link with a Link object'):
+            with it('delegates to the storage'):
+                a_link = Stub(Link)
+                a_new_tag = 'a new tag'
+
+                self.linkstore.add_tag(a_link, a_new_tag)
+
+                expect(self.link_storage_spy.add_tag_to_link_with_url).to(
+                    have_been_called_with(a_link.url, a_new_tag).once
+                )
+
+        with context('when identifying the link with its id'):
+            with it('delegates to the storage'):
+                a_link_id = 45
+                a_new_tag = 'a new tag'
+
+                self.linkstore.add_tag_by_id(a_link_id, a_new_tag)
+
+                expect(self.link_storage_spy.add_tag_to_link_with_id).to(
+                    have_been_called_with(a_link_id, a_new_tag).once
                 )

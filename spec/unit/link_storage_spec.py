@@ -75,6 +75,34 @@ with description('the SQLite link storage'):
                     have_been_called_with(a_link_id).once
                 )
 
+    with context('when adding a tag to a link'):
+        with context('when identifying the link with an url'):
+            with before.each:
+                self.tags_table_spy = Spy(TagsTable)
+                self.link_storage = SqliteLinkStorage({'links': Dummy(LinksTable), 'tags': self.tags_table_spy})
+
+            with it('asks the TagsTable to add the tag'):
+                an_url = 'an url'
+                a_new_tag = 'a new tag'
+
+                self.link_storage.add_tag_to_link_with_url(an_url, a_new_tag)
+
+                expect(self.tags_table_spy.save_tags_for_link_with_id).to(
+                    have_been_called_with(anything, (a_new_tag,)).once
+                )
+
+
+        with context('when identifying the link with an id'):
+            with it('asks the TagsTable to add the tag'):
+                a_link_id = 32
+                a_new_tag = 'a new tag'
+
+                self.link_storage.add_tag_to_link_with_id(a_link_id, a_new_tag)
+
+                expect(self.tags_table_spy.save_tags_for_link_with_id).to(
+                    have_been_called_with(a_link_id, (a_new_tag,)).once
+                )
+
 
 with description('the autoclosing SQLite connection'):
     with context('when used as a context manager'):

@@ -23,3 +23,9 @@ class Linkstore(object):
 
     def modify_tag_by_id(self, link_id, tag_modification):
         self._storage.replace_tag_in_link_with_id(link_id, tag_modification)
+
+    def add_tag(self, link, tag):
+        self._storage.add_tag_to_link_with_url(link.url, tag)
+
+    def add_tag_by_id(self, link_id, tag):
+        self._storage.add_tag_to_link_with_id(link_id, tag)

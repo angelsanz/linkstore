@@ -1,7 +1,7 @@
 import subprocess
 import shutil
 
-from expects import expect, equal, be_empty, match, have_length
+from expects import expect, equal, be_empty, match, have_length, contain
 
 from linkstore.link_storage import ApplicationDataDirectory
 
@@ -172,6 +172,30 @@ with description('the command-line application'):
             expect(links_matching_new_tag).to(have_length(1))
             expect(links_matching_new_tag[0]).to(match(self.an_url))
 
+    with context('when tagging links'):
+        with before.each:
+            self.an_url = 'https://www.example.com/'
+            self.old_tag = 'favourites'
+            invoke_cli([ 'save', self.an_url, self.old_tag ])
+
+            self.new_tag = 'very-favourites'
+            self.execution_result = invoke_cli([ 'tag', '1', self.new_tag ])
+
+        with it('does not fail'):
+            expect(self.execution_result.exit_code).to(equal(0))
+
+        with it('does not output anything'):
+            expect(self.execution_result.lines_in_output).to(be_empty)
+
+        with it('preserves the existing tag'):
+            links_matching_old_tag = invoke_cli([ 'list', self.old_tag ]).lines_in_output
+
+            expect(links_matching_old_tag).to(contain(match(self.an_url)))
+
+        with it('adds the requested tag'):
+            links_matching_new_tag = invoke_cli([ 'list', self.new_tag ]).lines_in_output
+
+            expect(links_matching_new_tag).to(contain(match(self.an_url)))
 
     with after.each:
         shutil.rmtree(ApplicationDataDirectory().path)
