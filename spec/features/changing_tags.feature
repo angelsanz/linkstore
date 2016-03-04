@@ -12,13 +12,11 @@ Feature: Changing the tags of existing links
         When I modify the tag to a new, different tag
         Then that link should have the new tag
         And that link should not have the original tag
-
-    Scenario: Adding one tag
+        
+    Scenario: Adding one or more tags
         Given I have saved an URL with a tag
-        When I add a new tag to that link
-        Then that link should have both the original and the new tag
-
-    Scenario: Adding more than one tag
+        When I add some new tags to that link
+        Then that link should have both the original and the new tags
 
     Scenario: Deleting one tag from links with more than one tag
 

@@ -58,6 +58,6 @@ def retag(link_id, current_tag, new_tag):
 
 @linkstore_cli.command()
 @argument('link_id', type=click.INT)
-@argument('new_tag')
-def tag(link_id, new_tag):
-    link_storage.add_tag_to_link_with_id(link_id, new_tag)
+@argument('new_tags', nargs=-1, required=True)
+def tag(link_id, new_tags):
+    link_storage.add_tags_to_link_with_id(link_id, new_tags)

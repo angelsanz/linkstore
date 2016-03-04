@@ -85,7 +85,7 @@ with description('the SQLite link storage'):
                 an_url = 'an url'
                 a_new_tag = 'a new tag'
 
-                self.link_storage.add_tag_to_link_with_url(an_url, a_new_tag)
+                self.link_storage.add_tags_to_link_with_url(an_url, (a_new_tag,))
 
                 expect(self.tags_table_spy.save_tags_for_link_with_id).to(
                     have_been_called_with(anything, (a_new_tag,)).once
@@ -97,7 +97,7 @@ with description('the SQLite link storage'):
                 a_link_id = 32
                 a_new_tag = 'a new tag'
 
-                self.link_storage.add_tag_to_link_with_id(a_link_id, a_new_tag)
+                self.link_storage.add_tags_to_link_with_id(a_link_id, (a_new_tag,))
 
                 expect(self.tags_table_spy.save_tags_for_link_with_id).to(
                     have_been_called_with(a_link_id, (a_new_tag,)).once

@@ -43,12 +43,12 @@ class SqliteLinkStorage(object):
     def replace_tag_in_link_with_id(self, link_id, tag_modification):
         self._tags_table.replace_tag_in_link_with_id(link_id, tag_modification)
 
-    def add_tag_to_link_with_url(self, url, tag):
+    def add_tags_to_link_with_url(self, url, tags):
         id_of_relevant_link = self._links_table.get_id_by_url(url)
-        self.add_tag_to_link_with_id(id_of_relevant_link, tag)
+        self.add_tags_to_link_with_id(id_of_relevant_link, tags)
 
-    def add_tag_to_link_with_id(self, link_id, tag):
-        self._tags_table.save_tags_for_link_with_id(link_id, (tag,))
+    def add_tags_to_link_with_id(self, link_id, tags):
+        self._tags_table.save_tags_for_link_with_id(link_id, tags)
 
 
 class SqliteConnectionFactory(object):

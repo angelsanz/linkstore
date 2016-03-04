@@ -178,8 +178,8 @@ with description('the command-line application'):
             self.old_tag = 'favourites'
             invoke_cli([ 'save', self.an_url, self.old_tag ])
 
-            self.new_tag = 'very-favourites'
-            self.execution_result = invoke_cli([ 'tag', '1', self.new_tag ])
+            self.some_new_tags = ('very-favourites', 'very-very-favourites', 'in-love-with-this-link')
+            self.execution_result = invoke_cli([ 'tag', '1'] + list(self.some_new_tags))
 
         with it('does not fail'):
             expect(self.execution_result.exit_code).to(equal(0))
@@ -193,9 +193,10 @@ with description('the command-line application'):
             expect(links_matching_old_tag).to(contain(match(self.an_url)))
 
         with it('adds the requested tag'):
-            links_matching_new_tag = invoke_cli([ 'list', self.new_tag ]).lines_in_output
+            for new_tag in self.some_new_tags:
+                links_matching_new_tag = invoke_cli([ 'list', new_tag ]).lines_in_output
 
-            expect(links_matching_new_tag).to(contain(match(self.an_url)))
+                expect(links_matching_new_tag).to(contain(match(self.an_url)))
 
     with after.each:
         shutil.rmtree(ApplicationDataDirectory().path)
