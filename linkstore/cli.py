@@ -53,11 +53,11 @@ def print_without_tags_links_tagged_with(tag_filter):
 @argument('current_tag')
 @argument('new_tag')
 def retag(link_id, current_tag, new_tag):
-    linkstore.modify_tag_by_id(link_id, {current_tag: new_tag})
+    link_storage.replace_tag_in_link_with_id(link_id, {current_tag: new_tag})
 
 
 @linkstore_cli.command()
 @argument('link_id', type=click.INT)
 @argument('new_tag')
 def tag(link_id, new_tag):
-    linkstore.add_tag_by_id(link_id, new_tag)
+    link_storage.add_tag_to_link_with_id(link_id, new_tag)
