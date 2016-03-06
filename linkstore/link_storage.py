@@ -50,6 +50,15 @@ class SqliteLinkStorage(object):
     def add_tags_to_link_with_id(self, link_id, tags):
         self._tags_table.save_tags_for_link_with_id(link_id, tags)
 
+    def delete_link_with_url(self, url):
+        id_of_relevant_link = self._links_table.get_id_by_url(url)
+
+        self.delete_link_with_id(id_of_relevant_link)
+
+    def delete_link_with_id(self, link_id):
+        self._tags_table.remove_tags_by_id(link_id)
+        self._links_table.remove_url_and_date_by_id(link_id)
+
 
 class SqliteConnectionFactory(object):
     @staticmethod
@@ -127,6 +136,10 @@ class LinksTable(SqliteTable):
                 (link_id,)
             ).fetchone()
 
+    def remove_url_and_date_by_id(self, link_id):
+        with self._connection as connection:
+            connection.execute('delete from links where link_id = ?', (link_id,))
+
 
 class TagsTable(SqliteTable):
     SQL_COMMAND_FOR_TABLE_CREATION = '''
@@ -176,6 +189,10 @@ class TagsTable(SqliteTable):
                 'update tags set name = ? where link_id = ? and name = ?',
                 (new_tag, link_id, current_tag)
             )
+
+    def remove_tags_by_id(self, link_id):
+        with self._connection as connection:
+            connection.execute('delete from tags where link_id = ?', (link_id,))
 
 
 class AutoclosingSqliteConnection(object):

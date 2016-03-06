@@ -198,5 +198,24 @@ with description('the command-line application'):
 
                 expect(links_matching_new_tag).to(contain(match(self.an_url)))
 
+    with context('when deleting links'):
+        with before.each:
+            self.an_url = 'https://www.example.com/'
+            self.a_tag = 'favourites'
+            invoke_cli([ 'save', self.an_url, self.a_tag ])
+
+            invoke_cli(['delete', '1'])
+
+        with it('does not fail'):
+            expect(self.execution_result.exit_code).to(equal(0))
+
+        with it('does not output anything'):
+            expect(self.execution_result.lines_in_output).to(be_empty)
+
+        with it('successfully deletes the link'):
+            links_matching_given_tag = invoke_cli([ 'list', self.a_tag ]).lines_in_output
+
+            expect(links_matching_given_tag).not_to(contain(match(self.an_url)))
+
     with after.each:
         shutil.rmtree(ApplicationDataDirectory().path)

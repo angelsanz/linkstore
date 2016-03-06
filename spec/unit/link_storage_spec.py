@@ -103,6 +103,32 @@ with description('the SQLite link storage'):
                     have_been_called_with(a_link_id, (a_new_tag,)).once
                 )
 
+    with context('when deleting a link'):
+        with before.each:
+            self.links_table_spy = Spy(LinksTable)
+            self.tags_table_spy = Spy(TagsTable)
+            self.link_storage = SqliteLinkStorage({'links': self.links_table_spy, 'tags': self.tags_table_spy})
+
+        with context('when identifying the link with an url'):
+            with before.each:
+                self.link_storage.delete_link_with_url('an url')
+
+            with it('tells the LinksTable to remove the data of that link'):
+                expect(self.links_table_spy.remove_url_and_date_by_id).to(have_been_called.once)
+
+            with it('tells the TagsTable to remove the tags associated with that link'):
+                expect(self.tags_table_spy.remove_tags_by_id).to(have_been_called.once)
+
+        with context('when identifying the link with an id'):
+            with before.each:
+                self.link_storage.delete_link_with_id('a link id')
+
+            with it('tells the LinksTable to remove the data of that link'):
+                expect(self.links_table_spy.remove_url_and_date_by_id).to(have_been_called.once)
+
+            with it('tells the TagsTable to remove the tags associated with that link'):
+                expect(self.tags_table_spy.remove_tags_by_id).to(have_been_called.once)
+
 
 with description('the autoclosing SQLite connection'):
     with context('when used as a context manager'):

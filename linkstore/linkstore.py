@@ -18,6 +18,9 @@ class Linkstore(object):
     def get_all(self):
         return self._create_links_from_link_records(self._storage.get_all())
 
+    def delete(self, link):
+        self._storage.delete_link_with_url(link.url)
+
     def modify_tag(self, link, tag_modification):
         self._storage.replace_tag_in_link_with_url(link.url, tag_modification)
 
