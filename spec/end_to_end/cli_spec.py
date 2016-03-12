@@ -1,7 +1,7 @@
 import subprocess
 import shutil
 
-from expects import expect, equal, be_empty, match, have_length, contain
+from expects import expect, equal, match
 
 from linkstore.link_storage import ApplicationDataDirectory
 
@@ -35,6 +35,7 @@ with description('the command-line application'):
     with context('when retrieving saved links'):
         with before.each:
             self.DATE_PATTERN = r'[0-9]{2}/[0-9]{2}/[0-9]{4}'
+            self.NUMBER_AT_BEGINNING_OF_LINE_PATTERN = r'^\d+'
 
         with context('by tag'):
             with before.each:
@@ -63,19 +64,13 @@ with description('the command-line application'):
 
             with context('output lines'):
                 with it('have an id'):
-                    NUMBER_AT_BEGINNING_OF_LINE_PATTERN = r'^\d+'
-
-                    for line in self.execution_result.lines_in_output:
-                        expect(line).to(match(NUMBER_AT_BEGINNING_OF_LINE_PATTERN))
+                    self.expect_output_lines_to_have_an_id()
 
                 with it('have an URL'):
-                    for line_number, line in enumerate(self.execution_result.lines_in_output):
-                        url = self.saved_links[line_number][0]
-                        expect(line).to(match(url))
+                    self.expect_output_lines_to_have_an_url()
 
                 with it('have a date'):
-                    for line in self.execution_result.lines_in_output:
-                        expect(line).to(match(self.DATE_PATTERN))
+                    self.expect_output_lines_to_have_a_date()
 
                 with it('have no tags'):
                     for line_number, line in enumerate(self.execution_result.lines_in_output):
@@ -83,6 +78,19 @@ with description('the command-line application'):
 
                         expect(line).not_to(match(tag))
                         expect(line).not_to(match(self.tag_filter))
+
+        def expect_output_lines_to_have_an_id(self):
+            for line in self.execution_result.lines_in_output:
+                expect(line).to(match(self.NUMBER_AT_BEGINNING_OF_LINE_PATTERN))
+
+        def expect_output_lines_to_have_an_url(self):
+            for line_number, line in enumerate(self.execution_result.lines_in_output):
+                url = self.saved_links[line_number][0]
+                expect(line).to(match(url))
+
+        def expect_output_lines_to_have_a_date(self):
+            for line in self.execution_result.lines_in_output:
+                expect(line).to(match(self.DATE_PATTERN))
 
         with context('all saved links'):
             with before.each:
@@ -107,15 +115,22 @@ with description('the command-line application'):
 
                 expect(number_of_lines_in_output).to(equal(number_of_saved_links))
 
-            with it('outputs the URL and tags of each saved link per line'):
-                for line_number, line in enumerate(self.execution_result.lines_in_output):
-                    url, tags = self.saved_links[line_number]
+            with context('output lines'):
+                with it('have an id'):
+                    self.expect_output_lines_to_have_an_id()
 
-                    expect(line).to(match(url))
-                    expect(line).to(match(self.DATE_PATTERN))
+                with it('have an URL'):
+                    self.expect_output_lines_to_have_an_url()
 
-                    for tag in tags:
-                        expect(line).to(match(tag))
+                with it('have a date'):
+                    self.expect_output_lines_to_have_a_date()
+
+                with it('have the tags of the relevant link'):
+                    for line_number, line in enumerate(self.execution_result.lines_in_output):
+                        tags = self.saved_links[line_number][1]
+
+                        for tag in tags:
+                            expect(line).to(match(tag))
 
     with after.each:
         shutil.rmtree(ApplicationDataDirectory().path)
