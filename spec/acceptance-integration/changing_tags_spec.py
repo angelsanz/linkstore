@@ -1,6 +1,4 @@
 from expects import expect, contain, be_below_or_equal
-be_subtuple_of = be_below_or_equal
-
 
 from ..fixtures import one_link
 from ..helpers import an_in_memory_sqlite_linkstore
@@ -36,4 +34,5 @@ with description('changing tags'):
             expect(self.the_link.tags).to(contain(self.one_of_the_orignal_tags))
 
         with it('adds the new tag'):
-            expect(self.some_new_tags).to(be_subtuple_of(self.the_link.tags))
+            for tag in self.some_new_tags:
+                expect(self.the_link.tags).to(contain(tag))
