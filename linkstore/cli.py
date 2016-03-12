@@ -67,3 +67,10 @@ def tag(link_id, new_tags):
 @argument('link_id', type=click.INT)
 def delete(link_id):
     link_storage.delete_link_with_id(link_id)
+
+
+@linkstore_cli.command('rename-tag')
+@argument('current_tag')
+@argument('new_tag')
+def rename_tag(current_tag, new_tag):
+    linkstore.modify_tag_globally({current_tag: new_tag})

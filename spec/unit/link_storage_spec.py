@@ -50,30 +50,37 @@ with description('the SQLite link storage'):
                 have_been_called_with().once
             )
 
-    with context('when replacing a tag of a link'):
+    with context('when replacing tags'):
         with before.each:
             self.tags_table_spy = Spy(TagsTable)
             self.link_storage = SqliteLinkStorage({'links': Dummy(LinksTable), 'tags': self.tags_table_spy})
 
-        with context('when identifying the link with an url'):
-            with it('asks the TagsTable to replace the tags'):
-                an_url = 'an url'
+        with context('of one link'):
+            with context('when identifying the link with an url'):
+                with it('asks the TagsTable to replace the tags'):
+                    an_url = 'an url'
 
-                self.link_storage.replace_tag_in_link_with_url(an_url, a_tag_modification())
+                    self.link_storage.replace_tag_in_link_with_url(an_url, a_tag_modification())
 
-                expect(self.tags_table_spy.replace_tag_in_link_with_id).to(
-                    have_been_called_with(anything, a_tag_modification()).once
-                )
+                    expect(self.tags_table_spy.replace_tag_in_link_with_id).to(
+                        have_been_called_with(anything, a_tag_modification()).once
+                    )
 
-        with context('when identifying the link with an id'):
-            with it('asks the TagsTable to replace the tags'):
-                a_link_id = 32
+            with context('when identifying the link with an id'):
+                with it('asks the TagsTable to replace the tags'):
+                    a_link_id = 32
 
-                self.link_storage.replace_tag_in_link_with_id(a_link_id, a_tag_modification())
+                    self.link_storage.replace_tag_in_link_with_id(a_link_id, a_tag_modification())
 
-                expect(self.tags_table_spy.replace_tag_in_link_with_id).to(
-                    have_been_called_with(a_link_id).once
-                )
+                    expect(self.tags_table_spy.replace_tag_in_link_with_id).to(
+                        have_been_called_with(a_link_id).once
+                    )
+
+    with context('of all links'):
+        with it('tells the TagsTable to rename the tag'):
+            self.link_storage.replace_tag_globally(a_tag_modification())
+
+            expect(self.tags_table_spy.rename_tag).to(have_been_called_with(a_tag_modification()).once)
 
     with context('when adding a tag to a link'):
         with context('when identifying the link with an url'):

@@ -29,6 +29,12 @@ def some_links_with_tags(tags):
         for url, _, date in data_for_some_links()
     ]
 
+def some_links_with_at_lesat_the_tags(tags):
+    return [
+        create_link_from_tuple((url, tags + other_tags, date))
+        for url, other_tags, date in data_for_some_links()
+    ]
+
 def a_tag_modification():
     return {
         'old tag': 'new tag'

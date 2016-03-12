@@ -24,5 +24,8 @@ class Linkstore(object):
     def modify_tag(self, link, tag_modification):
         self._storage.replace_tag_in_link_with_url(link.url, tag_modification)
 
+    def modify_tag_globally(self, tag_modification):
+        self._storage.replace_tag_globally(tag_modification)
+
     def add_tags(self, link, tags):
         self._storage.add_tags_to_link_with_url(link.url, tags)

@@ -43,6 +43,9 @@ class SqliteLinkStorage(object):
     def replace_tag_in_link_with_id(self, link_id, tag_modification):
         self._tags_table.replace_tag_in_link_with_id(link_id, tag_modification)
 
+    def replace_tag_globally(self, tag_modification):
+        self._tags_table.rename_tag(tag_modification)
+
     def add_tags_to_link_with_url(self, url, tags):
         id_of_relevant_link = self._links_table.get_id_by_url(url)
         self.add_tags_to_link_with_id(id_of_relevant_link, tags)
@@ -181,14 +184,28 @@ class TagsTable(SqliteTable):
             return tuple(tag for (tag,) in list_of_rows)
 
     def replace_tag_in_link_with_id(self, link_id, tag_modification):
-        current_tag = tag_modification.keys()[0]
-        new_tag = tag_modification.values()[0]
+        current_tag, new_tag = self._unpack_tag_modification(tag_modification)
 
         with self._connection as connection:
             connection.execute(
                 'update tags set name = ? where link_id = ? and name = ?',
                 (new_tag, link_id, current_tag)
             )
+
+    def rename_tag(self, tag_modification):
+        current_tag, new_tag = self._unpack_tag_modification(tag_modification)
+
+        with self._connection as connection:
+            connection.execute(
+                'update tags set name = ? where name = ?',
+                (new_tag, current_tag)
+            )
+
+    def _unpack_tag_modification(self, tag_modification):
+        current_tag = tag_modification.keys()[0]
+        new_tag = tag_modification[current_tag]
+
+        return (current_tag, new_tag)
 
     def remove_tags_by_id(self, link_id):
         with self._connection as connection:
