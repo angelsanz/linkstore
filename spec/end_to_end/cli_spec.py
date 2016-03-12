@@ -32,34 +32,6 @@ class ExecutionResult(object):
 
 
 with description('the command-line application'):
-    with context('when saving links'):
-        with before.each:
-            self.an_url = 'https://www.example.com/'
-
-        with context('without a tag'):
-            with it('fails'):
-                execution_result = invoke_cli('save', self.an_url)
-
-                expect(execution_result.exit_code).not_to(equal(0))
-
-        with context('with more than one tag'):
-            with before.each:
-                self.a_tag = 'favourites'
-                another_tag = 'another_tag'
-
-                self.execution_result = invoke_cli('save', self.an_url, self.a_tag, another_tag)
-
-            with it('does not fail'):
-                expect(self.execution_result.exit_code).to(equal(0))
-
-            with it('does not output anything'):
-                expect(self.execution_result.lines_in_output).to(be_empty)
-
-            with it('successfully saves the link'):
-                links_matching_given_tag = invoke_cli('list', self.a_tag).lines_in_output
-
-                expect(links_matching_given_tag).to(contain(match(self.an_url)))
-
     with context('when retrieving saved links'):
         with before.each:
             self.DATE_PATTERN = r'[0-9]{2}/[0-9]{2}/[0-9]{4}'
@@ -144,77 +116,6 @@ with description('the command-line application'):
 
                     for tag in tags:
                         expect(line).to(match(tag))
-
-    with context('when re-tagging links'):
-        with before.each:
-            self.an_url = 'https://www.example.com/'
-            self.old_tag = 'favourites'
-            invoke_cli('save', self.an_url, self.old_tag)
-
-            self.new_tag = 'not-so-favourites'
-            self.execution_result = invoke_cli('retag', '1', self.old_tag, self.new_tag)
-
-        with it('does not fail'):
-            expect(self.execution_result.exit_code).to(equal(0))
-
-        with it('does not output anything'):
-            expect(self.execution_result.lines_in_output).to(be_empty)
-
-        with it('removes the old tag'):
-            links_matching_old_tag = invoke_cli('list', self.old_tag).lines_in_output
-
-            expect(links_matching_old_tag).to(be_empty)
-
-        with it('adds the new tag'):
-            links_matching_new_tag = invoke_cli('list', self.new_tag).lines_in_output
-
-            expect(links_matching_new_tag).to(have_length(1))
-            expect(links_matching_new_tag[0]).to(match(self.an_url))
-
-    with context('when tagging links'):
-        with before.each:
-            self.an_url = 'https://www.example.com/'
-            self.old_tag = 'favourites'
-            invoke_cli('save', self.an_url, self.old_tag)
-
-            self.some_new_tags = ('very-favourites', 'very-very-favourites', 'in-love-with-this-link')
-            self.execution_result = invoke_cli('tag', '1', *self.some_new_tags)
-
-        with it('does not fail'):
-            expect(self.execution_result.exit_code).to(equal(0))
-
-        with it('does not output anything'):
-            expect(self.execution_result.lines_in_output).to(be_empty)
-
-        with it('preserves the existing tag'):
-            links_matching_old_tag = invoke_cli('list', self.old_tag).lines_in_output
-
-            expect(links_matching_old_tag).to(contain(match(self.an_url)))
-
-        with it('adds the requested tag'):
-            for new_tag in self.some_new_tags:
-                links_matching_new_tag = invoke_cli('list', new_tag).lines_in_output
-
-                expect(links_matching_new_tag).to(contain(match(self.an_url)))
-
-    with context('when deleting links'):
-        with before.each:
-            self.an_url = 'https://www.example.com/'
-            self.a_tag = 'favourites'
-            invoke_cli('save', self.an_url, self.a_tag)
-
-            invoke_cli('delete', '1')
-
-        with it('does not fail'):
-            expect(self.execution_result.exit_code).to(equal(0))
-
-        with it('does not output anything'):
-            expect(self.execution_result.lines_in_output).to(be_empty)
-
-        with it('successfully deletes the link'):
-            links_matching_given_tag = invoke_cli('list', self.a_tag).lines_in_output
-
-            expect(links_matching_given_tag).not_to(contain(match(self.an_url)))
 
     with after.each:
         shutil.rmtree(ApplicationDataDirectory().path)
