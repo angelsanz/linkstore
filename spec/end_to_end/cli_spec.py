@@ -42,24 +42,23 @@ with description('the command-line application'):
 
                 expect(execution_result.exit_code).not_to(equal(0))
 
-        with context('with one tag'):
-            with it('does not output anything'):
-                a_tag = 'favourites'
-
-                execution_result = invoke_cli('save', self.an_url, a_tag)
-
-                expect(execution_result.exit_code).to(equal(0))
-                expect(execution_result.lines_in_output).to(be_empty)
-
         with context('with more than one tag'):
-            with it('does not output anything'):
-                a_tag = 'favourites'
+            with before.each:
+                self.a_tag = 'favourites'
                 another_tag = 'another_tag'
 
-                execution_result = invoke_cli('save', self.an_url, a_tag, another_tag)
+                self.execution_result = invoke_cli('save', self.an_url, self.a_tag, another_tag)
 
-                expect(execution_result.exit_code).to(equal(0))
-                expect(execution_result.lines_in_output).to(be_empty)
+            with it('does not fail'):
+                expect(self.execution_result.exit_code).to(equal(0))
+
+            with it('does not output anything'):
+                expect(self.execution_result.lines_in_output).to(be_empty)
+
+            with it('successfully saves the link'):
+                links_matching_given_tag = invoke_cli('list', self.a_tag).lines_in_output
+
+                expect(links_matching_given_tag).to(contain(match(self.an_url)))
 
     with context('when retrieving saved links'):
         with before.each:
