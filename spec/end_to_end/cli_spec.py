@@ -6,14 +6,14 @@ from expects import expect, equal, be_empty, match, have_length, contain
 from linkstore.link_storage import ApplicationDataDirectory
 
 
-def invoke_cli(arguments):
+def invoke_cli(*arguments):
     path_to_cli_binary = subprocess.check_output([ 'which', 'linkstore' ]).strip()
 
     try:
         output = subprocess.check_output(
             [ 'coverage', 'run', '--append' ] +
             [ path_to_cli_binary ] +
-            arguments
+            list(arguments)
         )
     except subprocess.CalledProcessError as error:
         return ExecutionResult(error.output, error.returncode)
@@ -38,7 +38,7 @@ with description('the command-line application'):
 
         with context('without a tag'):
             with it('fails'):
-                execution_result = invoke_cli([ 'save', self.an_url ])
+                execution_result = invoke_cli('save', self.an_url)
 
                 expect(execution_result.exit_code).not_to(equal(0))
 
@@ -46,7 +46,7 @@ with description('the command-line application'):
             with it('does not output anything'):
                 a_tag = 'favourites'
 
-                execution_result = invoke_cli([ 'save', self.an_url, a_tag ])
+                execution_result = invoke_cli('save', self.an_url, a_tag)
 
                 expect(execution_result.exit_code).to(equal(0))
                 expect(execution_result.lines_in_output).to(be_empty)
@@ -56,7 +56,7 @@ with description('the command-line application'):
                 a_tag = 'favourites'
                 another_tag = 'another_tag'
 
-                execution_result = invoke_cli([ 'save', self.an_url, a_tag, another_tag ])
+                execution_result = invoke_cli('save', self.an_url, a_tag, another_tag)
 
                 expect(execution_result.exit_code).to(equal(0))
                 expect(execution_result.lines_in_output).to(be_empty)
@@ -75,11 +75,11 @@ with description('the command-line application'):
                 ]
 
                 for link in links_to_save:
-                    invoke_cli([ 'save', link[0], link[1] ])
+                    invoke_cli('save', link[0], link[1])
                 self.saved_links = links_to_save
 
 
-                self.execution_result = invoke_cli([ 'list', self.tag_filter ])
+                self.execution_result = invoke_cli('list', self.tag_filter)
 
             with it('does not fail'):
                 expect(self.execution_result.exit_code).to(equal(0))
@@ -122,10 +122,10 @@ with description('the command-line application'):
                 ]
 
                 for link in links_to_save:
-                    invoke_cli([ 'save', link[0] ] + list(link[1]))
+                    invoke_cli('save', link[0], *link[1])
                 self.saved_links = links_to_save
 
-                self.execution_result = invoke_cli([ 'list' ])
+                self.execution_result = invoke_cli('list')
 
             with it('does not fail'):
                 expect(self.execution_result.exit_code).to(equal(0))
@@ -150,10 +150,10 @@ with description('the command-line application'):
         with before.each:
             self.an_url = 'https://www.example.com/'
             self.old_tag = 'favourites'
-            invoke_cli([ 'save', self.an_url, self.old_tag ])
+            invoke_cli('save', self.an_url, self.old_tag)
 
             self.new_tag = 'not-so-favourites'
-            self.execution_result = invoke_cli([ 'retag', '1' ] + [ self.old_tag, self.new_tag ])
+            self.execution_result = invoke_cli('retag', '1', self.old_tag, self.new_tag)
 
         with it('does not fail'):
             expect(self.execution_result.exit_code).to(equal(0))
@@ -162,12 +162,12 @@ with description('the command-line application'):
             expect(self.execution_result.lines_in_output).to(be_empty)
 
         with it('removes the old tag'):
-            links_matching_old_tag = invoke_cli([ 'list', self.old_tag ]).lines_in_output
+            links_matching_old_tag = invoke_cli('list', self.old_tag).lines_in_output
 
             expect(links_matching_old_tag).to(be_empty)
 
         with it('adds the new tag'):
-            links_matching_new_tag = invoke_cli([ 'list', self.new_tag ]).lines_in_output
+            links_matching_new_tag = invoke_cli('list', self.new_tag).lines_in_output
 
             expect(links_matching_new_tag).to(have_length(1))
             expect(links_matching_new_tag[0]).to(match(self.an_url))
@@ -176,10 +176,10 @@ with description('the command-line application'):
         with before.each:
             self.an_url = 'https://www.example.com/'
             self.old_tag = 'favourites'
-            invoke_cli([ 'save', self.an_url, self.old_tag ])
+            invoke_cli('save', self.an_url, self.old_tag)
 
             self.some_new_tags = ('very-favourites', 'very-very-favourites', 'in-love-with-this-link')
-            self.execution_result = invoke_cli([ 'tag', '1'] + list(self.some_new_tags))
+            self.execution_result = invoke_cli('tag', '1', *self.some_new_tags)
 
         with it('does not fail'):
             expect(self.execution_result.exit_code).to(equal(0))
@@ -188,13 +188,13 @@ with description('the command-line application'):
             expect(self.execution_result.lines_in_output).to(be_empty)
 
         with it('preserves the existing tag'):
-            links_matching_old_tag = invoke_cli([ 'list', self.old_tag ]).lines_in_output
+            links_matching_old_tag = invoke_cli('list', self.old_tag).lines_in_output
 
             expect(links_matching_old_tag).to(contain(match(self.an_url)))
 
         with it('adds the requested tag'):
             for new_tag in self.some_new_tags:
-                links_matching_new_tag = invoke_cli([ 'list', new_tag ]).lines_in_output
+                links_matching_new_tag = invoke_cli('list', new_tag).lines_in_output
 
                 expect(links_matching_new_tag).to(contain(match(self.an_url)))
 
@@ -202,9 +202,9 @@ with description('the command-line application'):
         with before.each:
             self.an_url = 'https://www.example.com/'
             self.a_tag = 'favourites'
-            invoke_cli([ 'save', self.an_url, self.a_tag ])
+            invoke_cli('save', self.an_url, self.a_tag)
 
-            invoke_cli(['delete', '1'])
+            invoke_cli('delete', '1')
 
         with it('does not fail'):
             expect(self.execution_result.exit_code).to(equal(0))
@@ -213,7 +213,7 @@ with description('the command-line application'):
             expect(self.execution_result.lines_in_output).to(be_empty)
 
         with it('successfully deletes the link'):
-            links_matching_given_tag = invoke_cli([ 'list', self.a_tag ]).lines_in_output
+            links_matching_given_tag = invoke_cli('list', self.a_tag).lines_in_output
 
             expect(links_matching_given_tag).not_to(contain(match(self.an_url)))
 
