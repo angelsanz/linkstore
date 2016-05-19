@@ -30,7 +30,7 @@ setup(
     ],
     entry_points = {
         'console_scripts': [
-            'linkstore = linkstore.cli:linkstore_cli'
+            'linkstore = linkstore.cli:cli'
         ]
     }
 )
