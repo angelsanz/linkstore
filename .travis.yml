@@ -2,9 +2,9 @@ language: python
 python:
     - "2.7"
 
-install: .scripts/install-for-development.bash
+install: scripts/install-for-development.bash
 
-script: .scripts/test.bash
+script: scripts/test.bash
 
 after_success: coveralls
 

@@ -1,5 +1,4 @@
--e .
--r requirements.txt
+--requirement requirements.txt
 
 flake8==2.4.1
 
