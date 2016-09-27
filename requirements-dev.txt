@@ -1,9 +1,7 @@
 --requirement requirements.txt
 
-flake8==2.4.1
+flake8~=3.0.4
 
-mamba==0.8.5
-expects==0.8.0rc3
-doublex-expects==0.7.0rc1
-
-coveralls==1.0
+mamba~=0.8.6
+expects~=0.8.0
+doublex-expects~=0.7.0rc2
