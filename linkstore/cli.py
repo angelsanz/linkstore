@@ -72,4 +72,4 @@ def delete(link_id):
 @argument('current_tag')
 @argument('new_tag')
 def rename_tag(current_tag, new_tag):
-    links_service.modify_tag_globally({current_tag: new_tag})
+    links_service.modify_tag_of_all_links({current_tag: new_tag})
