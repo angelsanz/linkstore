@@ -1,9 +1,9 @@
-from .linkstore import Linkstore
+from .links_service import LinksService
 from .link_storage import SqliteLinkStorage, SqliteConnectionFactory, LinksTable, TagsTable
 
 
-def create_linkstore_with_storage(storage):
-    return Linkstore(
+def create_links_service_with_storage(storage):
+    return LinksService(
         storage,
         create_link
     )

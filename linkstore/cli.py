@@ -2,12 +2,11 @@ import click
 from click import group, argument
 
 from . import factory
-from .link import Link
 from .clock import Clock
 
 
 link_storage = factory.create_sqlite_link_storage()
-linkstore = factory.create_linkstore_with_storage(link_storage)
+links_service = factory.create_links_service_with_storage(link_storage)
 clock = Clock()
 
 
@@ -19,7 +18,7 @@ def cli():
 @argument('url')
 @argument('tags', nargs=-1, required=True)
 def save(url, tags):
-    linkstore.save(Link(url, tags, clock.date_of_today()))
+    links_service.save_link(url, tags, clock.date_of_today())
 
 
 @cli.command()
@@ -73,4 +72,4 @@ def delete(link_id):
 @argument('current_tag')
 @argument('new_tag')
 def rename_tag(current_tag, new_tag):
-    linkstore.modify_tag_globally({current_tag: new_tag})
+    links_service.modify_tag_globally({current_tag: new_tag})

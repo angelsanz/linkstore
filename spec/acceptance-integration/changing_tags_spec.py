@@ -1,60 +1,63 @@
 from expects import expect, contain
 
-from ..fixtures import one_link, some_links_with_at_lesat_the_tags
-from ..helpers import an_in_memory_sqlite_linkstore
+from ..fixtures import some_links_with_at_lesat_the_tags
+from ..helpers import an_in_memory_sqlite_links_service
 
 
 with description('changing tags'):
     with before.each:
-        self.a_link = one_link()
-        self.linkstore = an_in_memory_sqlite_linkstore()
+        self.an_url = 'an_url'
+        self.a_tag_to_change = 'a tag to change'
+        self.some_tags = (self.a_tag_to_change, 'another tag')
+        self.a_date = 'a date'
+
+        self.links_service = an_in_memory_sqlite_links_service()
         self.a_new_tag = 'a new tag'
 
     with context('modifying tags for one link'):
         with before.each:
-            self.linkstore.save(self.a_link)
+            self.links_service.save_link(self.an_url, self.some_tags, self.a_date)
 
-            self.one_of_the_orignal_tags = self.a_link.tags[0]
-            self.linkstore.modify_tag(self.a_link, {self.one_of_the_orignal_tags: self.a_new_tag})
+            self.links_service.modify_tag_of_link_with_url(self.an_url, {self.a_tag_to_change: self.a_new_tag})
 
-            self.modified_link = self.linkstore.get_all()[0]
+            self.modified_link = self.links_service.get_all()[0]
 
         with it('adds the new tag'):
             expect(self.modified_link.tags).to(contain(self.a_new_tag))
 
         with it('removes the old tag'):
-            expect(self.modified_link.tags).not_to(contain(self.one_of_the_orignal_tags))
+            expect(self.modified_link.tags).not_to(contain(self.a_tag_to_change))
 
     with context('modifying tags for all links'):
         with before.each:
-            self.one_of_the_orignal_tags = 'the original tag'
+            self.a_tag_to_change = 'the original tag'
 
-            for link in some_links_with_at_lesat_the_tags((self.one_of_the_orignal_tags,)):
-                self.linkstore.save(link)
+            for url, tags, date in some_links_with_at_lesat_the_tags((self.a_tag_to_change,)):
+                self.links_service.save_link(url, tags, date)
 
-            self.linkstore.modify_tag_globally({self.one_of_the_orignal_tags: self.a_new_tag})
+            self.links_service.modify_tag_of_all_links({self.a_tag_to_change: self.a_new_tag})
 
         with it('adds the new tag'):
-            for modified_link in self.linkstore.get_all():
+            for modified_link in self.links_service.get_all():
                 expect(modified_link.tags).to(contain(self.a_new_tag))
 
         with it('removes the old tag'):
-            for modified_link in self.linkstore.get_all():
-                expect(modified_link.tags).not_to(contain(self.one_of_the_orignal_tags))
+            for modified_link in self.links_service.get_all():
+                expect(modified_link.tags).not_to(contain(self.a_tag_to_change))
 
     with context('adding tags'):
         with before.each:
-            self.linkstore.save(self.a_link)
+            self.links_service.save_link(self.an_url, self.some_tags, self.a_date)
 
             self.some_new_tags = (self.a_new_tag, 'another new tag', 'one more new tag')
-            self.linkstore.add_tags(self.a_link, self.some_new_tags)
+            self.links_service.add_tags_to_link_with_url(self.an_url, self.some_new_tags)
 
-            self.modified_link = self.linkstore.get_all()[0]
+            self.modified_link = self.links_service.get_all()[0]
 
         with it('preserves the original tags'):
-            for original_tag in self.a_link.tags:
+            for original_tag in self.some_tags:
                 expect(self.modified_link.tags).to(contain(original_tag))
 
         with it('adds the new tags'):
-            for tag in self.some_new_tags:
-                expect(self.modified_link.tags).to(contain(tag))
+            for new_tag in self.some_new_tags:
+                expect(self.modified_link.tags).to(contain(new_tag))

@@ -4,7 +4,7 @@ from linkstore.link import Link
 
 
 def some_links():
-    return map(create_link_from_tuple, data_for_some_links())
+    return data_for_some_links()
 
 def create_link_from_tuple(link_tuple):
     return Link(*link_tuple)
@@ -25,13 +25,13 @@ def one_link():
 
 def some_links_with_tags(tags):
     return [
-        create_link_from_tuple((url, tags, date))
+        (url, tags, date)
         for url, _, date in data_for_some_links()
     ]
 
 def some_links_with_at_lesat_the_tags(tags):
     return [
-        create_link_from_tuple((url, tags + other_tags, date))
+        (url, tags + other_tags, date)
         for url, other_tags, date in data_for_some_links()
     ]
 

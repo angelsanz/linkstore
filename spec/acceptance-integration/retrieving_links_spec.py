@@ -1,54 +1,44 @@
-from expects import expect, equal
+from expects import expect, equal, have_length
 
-from linkstore.link import Link
-
-from ..helpers import an_in_memory_sqlite_linkstore
+from ..helpers import an_in_memory_sqlite_links_service
 from ..fixtures import some_links_with_tags, some_links
 
 
 with description('retrieving links'):
     with before.each:
-        self.linkstore = an_in_memory_sqlite_linkstore()
+        self.links_service = an_in_memory_sqlite_links_service()
 
     with context('by one tag'):
-        with it('returns the links originally saved with the target tag'):
-            a_tag = 'the target tag'
-            some_links_with_target_tag = some_links_with_tags((a_tag,))
+        with it('returns links saved with the target tag'):
+            target_tag = 'the target tag'
+            some_links_with_target_tag = some_links_with_tags((target_tag, 'some other tag', 'yet some other tag'))
+            for url, tags, date in some_links_with_target_tag:
+                self.links_service.save_link(url, tags, date)
 
-            for link in some_links_with_target_tag:
-                self.linkstore.save(link)
+            links_with_target_tag = self.links_service.retrieve_links_by_tag(target_tag)
 
-            all_links_with_target_tag = self.linkstore.find_by_tag(a_tag)
-            expect(all_links_with_target_tag).to(equal(some_links_with_target_tag))
-
-        with it('returns links originally saved with the target tag and some other tags'):
-            a_tag = 'the target tag'
-            some_links_with_target_tag_and_others = some_links_with_tags((a_tag, 'some other tag', 'yet some other tag'))
-
-            for link in some_links_with_target_tag_and_others:
-                self.linkstore.save(link)
-
-            all_links_with_target_tag = self.linkstore.find_by_tag(a_tag)
-            expect(all_links_with_target_tag).to(equal(some_links_with_target_tag_and_others))
+            expect(links_with_target_tag).to(have_length(len(some_links_with_target_tag)))
 
         with it('''doesn't return links which weren't saved with the target tag'''):
-            a_tag = 'the target tag'
-            some_links_with_target_tag = some_links_with_tags((a_tag,))
-            for link in some_links_with_target_tag:
-                self.linkstore.save(link)
-            a_different_link = Link('a different url', 'not the target tag', 'whatever date')
+            target_tag = 'the target tag'
+            some_links_with_target_tag = some_links_with_tags((target_tag,))
+            for url, tags, date in some_links_with_target_tag:
+                self.links_service.save_link(url, tags, date)
+            a_different_url = 'a different url'
+            a_different_tag = 'not the target tag'
+            self.links_service.save_link(a_different_url, a_different_tag, 'whatever date')
 
-            self.linkstore.save(a_different_link)
+            links_with_target_tag = self.links_service.retrieve_links_by_tag(target_tag)
 
-            for link in self.linkstore.find_by_tag(a_tag):
-                expect(link).not_to(equal(a_different_link))
+            for link in links_with_target_tag:
+                expect(link.url).not_to(equal(a_different_url))
 
     with context('all links'):
         with it('returns all links'):
             links_to_save = some_links()
 
-            for link in links_to_save:
-                self.linkstore.save(link)
+            for url, tags, date in links_to_save:
+                self.links_service.save_link(url, tags, date)
             saved_links = links_to_save
 
-            expect(self.linkstore.get_all()).to(equal(saved_links))
+            expect(self.links_service.get_all()).to(have_length(len(saved_links)))

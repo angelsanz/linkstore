@@ -1,14 +1,18 @@
-from expects import expect, contain
+from expects import expect, equal
 
-from ..helpers import an_in_memory_sqlite_linkstore
-from ..fixtures import one_link
+from ..helpers import an_in_memory_sqlite_links_service
 
 
 with description('saving a link'):
     with it('is successfully saved'):
-        a_link = one_link()
-        linkstore = an_in_memory_sqlite_linkstore()
+        an_url = 'an_url'
+        some_tags = ('a_tag',)
+        a_date = 'a date'
+        links_service = an_in_memory_sqlite_links_service()
 
-        linkstore.save(a_link)
+        links_service.save_link(an_url, some_tags, a_date)
 
-        expect(linkstore.get_all()).to(contain(a_link))
+        saved_link = links_service.get_all()[0]
+        expect(saved_link.url).to(equal(an_url))
+        expect(saved_link.tags).to(equal(some_tags))
+        expect(saved_link.date).to(equal(a_date))
