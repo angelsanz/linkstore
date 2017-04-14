@@ -25,16 +25,30 @@ class LinksService(object):
         ]
 
     def get_all(self):
-        return self._create_links_from_link_records(self._storage.get_all())
+        self._create_links_from_link_records(self._storage.get_all())
+
+        return self._links.get_all()
 
     def delete_link_with_url(self, url):
         self._storage.delete_link_with_url(url)
 
+        link = self._links.find_by_url(url)
+        self._links.remove(link)
+
     def modify_tag_of_link_with_url(self, url, tag_modification):
         self._storage.replace_tag_in_link_with_url(url, tag_modification)
+
+        link = self._links.find_by_url(url)
+        self._links.add(link.modify_tag(tag_modification))
 
     def modify_tag_of_all_links(self, tag_modification):
         self._storage.replace_tag_globally(tag_modification)
 
+        for link in self._links.get_all():
+            self._links.add(link.modify_tag(tag_modification))
+
     def add_tags_to_link_with_url(self, url, tags):
         self._storage.add_tags_to_link_with_url(url, tags)
+
+        link = self._links.find_by_url(url)
+        self._links.add(link.add_tags(tags))

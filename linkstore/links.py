@@ -7,3 +7,12 @@ class Links(object):
 
     def find_by_tag(self, tag):
         return [link for link in self._links.values() if tag in link.tags]
+
+    def get_all(self):
+        return self._links.values()
+
+    def remove(self, link):
+        del self._links[link.url]
+
+    def find_by_url(self, url):
+        return self._links[url]
