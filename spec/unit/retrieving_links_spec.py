@@ -26,7 +26,7 @@ with description('retrieving links'):
                 self.links_service.save_link(url, tags, date)
             a_different_url = 'a different url'
             a_different_tag = 'not the target tag'
-            self.links_service.save_link(a_different_url, a_different_tag, 'whatever date')
+            self.links_service.save_link(a_different_url, (a_different_tag,), 'whatever date')
 
             links_with_target_tag = self.links_service.retrieve_links_by_tag(target_tag)
 

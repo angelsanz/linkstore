@@ -2,16 +2,21 @@ from .link import Link
 
 
 class LinksService(object):
-    def __init__(self, link_storage, link_creator):
+    def __init__(self, link_storage, links, link_creator):
         self._storage = link_storage
         self._link_creator = link_creator
+        self._links = links
 
     def save_link(self, url, tags, date):
         link = Link(url, tags, date)
         self._storage.save(link)
+        self._links.add(link)
 
     def retrieve_links_by_tag(self, tag):
-        return self._create_links_from_link_records(self._storage.find_by_tag(tag))
+        self._create_links_from_link_records(self._storage.find_by_tag(tag))
+
+        return self._links.find_by_tag(tag)
+
 
     def _create_links_from_link_records(self, link_records):
         return [

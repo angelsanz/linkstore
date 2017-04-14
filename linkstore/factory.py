@@ -1,10 +1,12 @@
 from .links_service import LinksService
 from .link_storage import SqliteLinkStorage, SqliteConnectionFactory, LinksTable, TagsTable
+from .links import Links
 
 
 def create_links_service_with_storage(storage):
     return LinksService(
         storage,
+        Links(),
         create_link
     )
 
