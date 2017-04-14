@@ -1,25 +1,13 @@
 from .links_service import LinksService
-from .link_storage import SqliteLinkStorage, SqliteConnectionFactory, LinksTable, TagsTable
-from .links import Links
+from .link_storage import SqliteConnectionFactory
+from .links import Links, SqliteLinks
 
 
-def create_links_service_with_storage(storage):
-    return LinksService(
-        storage,
-        Links(),
-        create_link
-    )
+def create_links_service():
+    return LinksService(Links())
 
-def create_sqlite_link_storage():
-    return create_sqlite_link_storage_with_connection(
-        SqliteConnectionFactory.create_autoclosing_on_disk()
-    )
+def create_links_service_with(links):
+    return LinksService(links)
 
-def create_sqlite_link_storage_with_connection(connection):
-    return SqliteLinkStorage({
-        'links': LinksTable(connection),
-        'tags': TagsTable(connection)
-    })
-
-def create_link(link_record):
-    return link_record.toLink()
+def create_persistent_links():
+    return SqliteLinks(SqliteConnectionFactory.create_autoclosing_on_disk())

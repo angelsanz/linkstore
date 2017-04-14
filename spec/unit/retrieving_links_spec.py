@@ -1,12 +1,13 @@
 from expects import expect, equal, have_length
 
-from ..helpers import an_in_memory_sqlite_links_service
+from linkstore import factory
+
 from ..fixtures import some_links_with_tags, some_links
 
 
 with description('retrieving links'):
     with before.each:
-        self.links_service = an_in_memory_sqlite_links_service()
+        self.links_service = factory.create_links_service()
 
     with context('by one tag'):
         with it('returns links saved with the target tag'):

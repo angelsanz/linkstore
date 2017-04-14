@@ -1,12 +1,12 @@
 import click
 from click import group, argument
 
-from . import factory
-from .clock import Clock
+from linkstore import factory
+from linkstore.clock import Clock
 
 
-link_storage = factory.create_sqlite_link_storage()
-links_service = factory.create_links_service_with_storage(link_storage)
+links = factory.create_persistent_links()
+links_service = factory.create_links_service_with(links)
 clock = Clock()
 
 
@@ -30,7 +30,7 @@ def list(tag_filter):
         print_without_tags_links_tagged_with(tag_filter)
 
 def print_all_links():
-    for link_record in link_storage.get_all():
+    for link_record in links.get_all():
         print('  |  '.join([
             link_record.id,
             link_record.url,
@@ -39,7 +39,7 @@ def print_all_links():
         ]))
 
 def print_without_tags_links_tagged_with(tag_filter):
-    for link_record in link_storage.find_by_tag(tag_filter):
+    for link_record in links.find_by_tag(tag_filter):
         print('  |  '.join([
             link_record.id,
             link_record.url,
@@ -52,20 +52,20 @@ def print_without_tags_links_tagged_with(tag_filter):
 @argument('current_tag')
 @argument('new_tag')
 def retag(link_id, current_tag, new_tag):
-    link_storage.replace_tag_in_link_with_id(link_id, {current_tag: new_tag})
+    links.replace_tag_in_link_with_id(link_id, {current_tag: new_tag})
 
 
 @cli.command()
 @argument('link_id', type=click.INT)
 @argument('new_tags', nargs=-1, required=True)
 def tag(link_id, new_tags):
-    link_storage.add_tags_to_link_with_id(link_id, new_tags)
+    links.add_tags_to_link_with_id(link_id, new_tags)
 
 
 @cli.command()
 @argument('link_id', type=click.INT)
 def delete(link_id):
-    link_storage.delete_link_with_id(link_id)
+    links.delete_link_with_id(link_id)
 
 
 @cli.command('rename-tag')

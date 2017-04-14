@@ -1,7 +1,8 @@
 from expects import expect, contain
 
+from linkstore import factory
+
 from ..fixtures import some_links_with_at_lesat_the_tags
-from ..helpers import an_in_memory_sqlite_links_service
 
 
 with description('changing tags'):
@@ -11,7 +12,7 @@ with description('changing tags'):
         self.some_tags = (self.a_tag_to_change, 'another tag')
         self.a_date = 'a date'
 
-        self.links_service = an_in_memory_sqlite_links_service()
+        self.links_service = factory.create_links_service()
         self.a_new_tag = 'a new tag'
 
     with context('modifying tags for one link'):

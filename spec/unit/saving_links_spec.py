@@ -1,6 +1,6 @@
 from expects import expect, equal
 
-from ..helpers import an_in_memory_sqlite_links_service
+from linkstore import factory
 
 
 with description('saving a link'):
@@ -8,7 +8,7 @@ with description('saving a link'):
         an_url = 'an_url'
         some_tags = ('a_tag',)
         a_date = 'a date'
-        links_service = an_in_memory_sqlite_links_service()
+        links_service = factory.create_links_service()
 
         links_service.save_link(an_url, some_tags, a_date)
 

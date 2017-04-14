@@ -62,6 +62,14 @@ class SqliteLinkStorage(object):
         self._tags_table.remove_tags_by_id(link_id)
         self._links_table.remove_url_and_date_by_id(link_id)
 
+    def find_by_url(self, url):
+        id = self._links_table.get_id_by_url(url)
+        url, date = self._links_table.get_url_and_date_by_id(id)
+        tags = self._tags_table.get_tags_by_id(id)
+
+        return LinkRecord(id, url, tags, date)
+
+
 
 class SqliteConnectionFactory(object):
     @staticmethod
