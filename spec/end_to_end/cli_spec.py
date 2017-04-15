@@ -3,7 +3,7 @@ import shutil
 
 from expects import expect, equal, match
 
-from linkstore.link_storage import ApplicationDataDirectory
+from linkstore.links import ApplicationDataDirectory
 
 
 def invoke_cli(*arguments):

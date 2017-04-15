@@ -4,7 +4,7 @@ from expects import expect, equal, contain
 
 from linkstore.link import Link
 from linkstore import factory
-from linkstore.link_storage import ApplicationDataDirectory
+from linkstore.links import ApplicationDataDirectory
 
 from ..fixtures import one_link
 
