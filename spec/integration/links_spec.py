@@ -53,5 +53,15 @@ with description('Persistent links repository'):
 
         expect(links.find_by_url(a_link.url)).to(equal(a_link))
 
+    with it('adding a link more than once overwrites it'):
+        a_link = Link('an url', ('a tag', 'another tag'), 'a date')
+        same_link_with_different_tags = Link('an url', ('another tag', 'a third tag'), 'a date')
+        links = factory.create_persistent_links()
+
+        links.add(a_link)
+        links.add(same_link_with_different_tags)
+
+        expect(links.get_all()).to(equal([same_link_with_different_tags]))
+
     with after.each:
         shutil.rmtree(ApplicationDataDirectory().path)
