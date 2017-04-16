@@ -2,12 +2,12 @@ import click
 from click import group, argument
 
 from linkstore import factory
-from linkstore.clock import Clock
+from linkstore.calendar import Calendar
 
 
 links_service = factory.create_links_service_with(factory.create_persistent_links())
 handles = factory.create_handles()
-clock = Clock()
+calendar = Calendar()
 
 
 @group()
@@ -18,7 +18,7 @@ def cli():
 @argument('url')
 @argument('tags', nargs=-1, required=True)
 def save(url, tags):
-    links_service.save_link(url, tags, clock.date_of_today())
+    links_service.save_link(url, tags, calendar.date_of_today())
 
 
 @cli.command()
