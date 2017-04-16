@@ -49,7 +49,7 @@ with description('the command-line application'):
 
 
             expect(self.execution_result.exit_code).to(equal(0))
-            self.expect_output_lines_to_have_an_id()
+            self.expect_output_lines_to_have_a_handle()
             self.expect_output_lines_to_have_an_url()
             self.expect_output_lines_to_have_a_date()
             self.expect_output_lines_to_not_have_tags()
@@ -70,14 +70,14 @@ with description('the command-line application'):
 
 
             expect(self.execution_result.exit_code).to(equal(0))
-            self.expect_output_lines_to_have_an_id()
+            self.expect_output_lines_to_have_a_handle()
             self.expect_output_lines_to_have_an_url()
             self.expect_output_lines_to_have_a_date()
             self.expect_output_to_have_a_line_per_saved_link()
             self.expect_output_to_have_all_tags_of_each_link()
 
 
-        def expect_output_lines_to_have_an_id(self):
+        def expect_output_lines_to_have_a_handle(self):
             NUMBER_AT_BEGINNING_OF_LINE_PATTERN = r'^\d+'
 
             for line in self.execution_result.lines_in_output:

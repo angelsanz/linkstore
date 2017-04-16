@@ -2,7 +2,7 @@ import os
 from os import path
 import sqlite3
 
-from linkstore.link import LinkRecord
+from .link import Link
 
 
 class Links(object):
@@ -32,45 +32,133 @@ class SqliteLinks(object):
 
     def add(self, link):
         self._links_table.save(link.url, link.date)
-
-        link_id = self._links_table.get_id(link.url)
-        self._tags_table.reset_tags(link_id, link.tags)
+        self._tags_table.reset_tags(link.url, link.tags)
 
     def find_by_tag(self, tag):
         found = []
-        for link_id in self._tags_table.get_ids_of_links_with_tag(tag):
-            url, date = self._links_table.get_url_and_date(link_id)
+        for url in self._tags_table.get_urls_of_links_with_tag(tag):
+            date = self._links_table.get_date(url)
+            tags = self._tags_table.get_tags(url)
 
-            found.append(LinkRecord(link_id, url, self._tags_table.get_tags(link_id), date))
+            found.append(Link(url, tags, date))
 
         return found
 
     def get_all(self):
-        return [
-            LinkRecord(
-                link_id,
-                url,
-                self._tags_table.get_tags(link_id),
-                date_saved
-            )
-            for link_id, url, date_saved in self._links_table.get_all()
-        ]
+        all_links = []
+        for url, date in self._links_table.get_all():
+            tags = self._tags_table.get_tags(url)
+
+            all_links.append(Link(url, tags, date))
+
+        return all_links
 
     def remove(self, link):
-        link_id = self._links_table.get_id(link.url)
-        self._delete_link_with_id(link_id)
-
-    def _delete_link_with_id(self, link_id):
-        self._tags_table.remove_tags(link_id)
-        self._links_table.remove_url_and_date(link_id)
+        self._tags_table.remove_tags(link.url)
+        self._links_table.remove_url_and_date(link.url)
 
     def find_by_url(self, url):
-        link_id = self._links_table.get_id(url)
-        url, date = self._links_table.get_url_and_date(link_id)
-        tags = self._tags_table.get_tags(link_id)
+        date = self._links_table.get_date(url)
+        tags = self._tags_table.get_tags(url)
 
-        return LinkRecord(link_id, url, tags, date)
+        return Link(url, tags, date)
 
+
+
+class SqliteTable(object):
+    def __init__(self, sqlite_connection):
+        self._connection = sqlite_connection
+
+        self._set_up()
+
+    def _set_up(self):
+        with self._connection as connection:
+            connection.execute(self.SQL_COMMAND_FOR_TABLE_CREATION)
+
+
+class LinksTable(SqliteTable):
+    SQL_COMMAND_FOR_TABLE_CREATION = '''
+        create table if not exists links(
+            url
+                primary key
+                not null,
+            date_saved
+                not null
+        )
+    '''
+
+    def get_all(self):
+        with self._connection as connection:
+            return connection.execute('select url, date_saved from links').fetchall()
+
+    def save(self, url, date):
+        with self._connection as connection:
+            connection.execute(
+                'insert or ignore into links(url, date_saved) values(?, ?)',
+                (url, date)
+            )
+
+    def get_date(self, url):
+        with self._connection as connection:
+            row = connection.execute(
+                'select date_saved from links where url = ?',
+                (url,)
+            ).fetchone()
+            date = row[0]
+
+            return date
+
+    def remove_url_and_date(self, url):
+        with self._connection as connection:
+            connection.execute('delete from links where url = ?', (url,))
+
+
+class TagsTable(SqliteTable):
+    SQL_COMMAND_FOR_TABLE_CREATION = '''
+        create table if not exists tags(
+            url
+                not null,
+            name
+                not null,
+
+            foreign key(url) references links(url)
+                on delete restrict
+                on update restrict
+            )
+    '''
+
+    def get_urls_of_links_with_tag(self, tag):
+        with self._connection as connection:
+            list_of_rows = connection.execute(
+                'select url from tags where name = ?',
+                (tag,)
+            ).fetchall()
+
+            return tuple(url for (url,) in list_of_rows)
+
+    def get_tags(self, url):
+        with self._connection as connection:
+            list_of_rows = connection.execute(
+                'select name from tags where url = ?',
+                (url,)
+            ).fetchall()
+
+            return tuple(tag for (tag,) in list_of_rows)
+
+    def reset_tags(self, url, tags):
+        self.remove_tags(url)
+        self.add_tags(url, tags)
+
+    def remove_tags(self, url):
+        with self._connection as connection:
+            connection.execute('delete from tags where url = ?', (url,))
+
+    def add_tags(self, url, tags):
+        with self._connection as connection:
+            connection.executemany(
+                'insert into tags(url, name) values(?, ?)',
+                [(url, tag) for tag in tags]
+            )
 
 
 
@@ -96,111 +184,6 @@ class SqliteConnectionFactory(object):
         cls._enable_enforcement_of_foreign_key_constraints(connection_to_on_disk_database)
 
         return connection_to_on_disk_database
-
-
-class SqliteTable(object):
-    def __init__(self, connection_to_database):
-        self._connection = connection_to_database
-
-        self._set_up()
-
-    def _set_up(self):
-        with self._connection as connection:
-            connection.execute(self.SQL_COMMAND_FOR_TABLE_CREATION)
-
-
-class LinksTable(SqliteTable):
-    SQL_COMMAND_FOR_TABLE_CREATION = '''
-        create table if not exists links(
-            link_id integer primary key
-                not null,
-            url
-                unique
-                not null,
-            date_saved
-                not null
-        )
-    '''
-
-    def get_all(self):
-        with self._connection as connection:
-            return connection.execute('select link_id, url, date_saved from links').fetchall()
-
-    def get_id(self, url):
-        with self._connection as connection:
-            row = connection.execute(
-                'select link_id from links where url = ?',
-                (url,)
-            ).fetchone()
-            link_id = row[0]
-
-            return link_id
-
-    def save(self, url, date):
-        with self._connection as connection:
-            connection.execute(
-                'insert or ignore into links(url, date_saved) values(?, ?)',
-                (url, date)
-            )
-
-    def get_url_and_date(self, link_id):
-        with self._connection as connection:
-            return connection.execute(
-                'select url, date_saved from links where link_id = ?',
-                (link_id,)
-            ).fetchone()
-
-    def remove_url_and_date(self, link_id):
-        with self._connection as connection:
-            connection.execute('delete from links where link_id = ?', (link_id,))
-
-
-class TagsTable(SqliteTable):
-    SQL_COMMAND_FOR_TABLE_CREATION = '''
-        create table if not exists tags(
-            link_id
-                not null,
-            name
-                not null,
-
-            foreign key(link_id) references links(link_id)
-                on delete restrict
-                on update restrict
-            )
-    '''
-
-    def get_ids_of_links_with_tag(self, tag):
-        with self._connection as connection:
-            list_of_rows = connection.execute(
-                'select link_id from tags where name = ?',
-                (tag,)
-            ).fetchall()
-
-            return tuple(link_id for (link_id,) in list_of_rows)
-
-    def get_tags(self, link_id):
-        with self._connection as connection:
-            list_of_rows = connection.execute(
-                'select name from tags where link_id = ?',
-                (link_id,)
-            ).fetchall()
-
-            return tuple(tag for (tag,) in list_of_rows)
-
-    def reset_tags(self, link_id, tags):
-        self.remove_tags(link_id)
-        self.add_tags(link_id, tags)
-
-    def remove_tags(self, link_id):
-        with self._connection as connection:
-            connection.execute('delete from tags where link_id = ?', (link_id,))
-
-    def add_tags(self, link_id, tags):
-        with self._connection as connection:
-            connection.executemany(
-                'insert into tags(link_id, name) values(?, ?)',
-                [(link_id, tag) for tag in tags]
-            )
 
 
 class AutoclosingSqliteConnection(object):

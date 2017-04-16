@@ -1,5 +1,6 @@
 from .links_service import LinksService
 from .links import Links, SqliteLinks, SqliteConnectionFactory, LinksTable, TagsTable
+from .handles import Handles, HandlesTable
 
 
 def create_links_service():
@@ -14,3 +15,7 @@ def create_persistent_links():
         'links': LinksTable(connection),
         'tags': TagsTable(connection)
     })
+
+def create_handles():
+    connection = SqliteConnectionFactory.create_autoclosing_on_disk()
+    return Handles(HandlesTable(connection))
